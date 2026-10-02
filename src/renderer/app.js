@@ -249,16 +249,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       totalItems += (module.items || []).length;
-      const moduleCard = createModuleCard(module, items, moduleIdx + 1);
+      const isNewModule = state.newModules.has(module.id);
+      const isCollapsed = query ? false : (!isNewModule && moduleIdx > 0);
+      const moduleCard = createModuleCard(module, items, moduleIdx + 1, isCollapsed);
       elements.modulesContainer.appendChild(moduleCard);
     });
 
     elements.courseStats.textContent = `${state.modules.length} Modules · ${totalItems} Items`;
   }
 
-  function createModuleCard(module, items, moduleIndex) {
+  function createModuleCard(module, items, moduleIndex, isCollapsed = false) {
     const card = document.createElement('div');
-    card.className = 'module-card';
+    card.className = `module-card ${isCollapsed ? 'collapsed' : ''}`;
     card.dataset.moduleId = module.id;
 
     const isNewModule = state.newModules.has(module.id);
