@@ -41,6 +41,7 @@
     "mac": {
       "icon": "assets/icon.icns",
       "category": "public.app-category.education",
+      "identity": null,
       "target": [
         "dmg",
         "zip"
