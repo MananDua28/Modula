@@ -48,16 +48,14 @@ Built with a strict Swiss-inspired aesthetic: pure obsidian black, clean white, 
 
 ---
 
-## 📥 Downloads
+## 📥 Direct Downloads
 
-Download the latest version for your operating system from [Releases](https://github.com/MananDua28/Canvas-Downloader/releases):
+Download the latest version for your operating system:
 
-| Operating System | Package | Description |
+| Operating System | Direct Download Link | Description |
 | :--- | :--- | :--- |
-| **macOS** | [`.dmg`](https://github.com/MananDua28/Canvas-Downloader/releases) | Native Apple Disk Image installer |
-| **macOS** | [`.zip`](https://github.com/MananDua28/Canvas-Downloader/releases) | Standalone zipped application |
-| **Windows** | [`.exe (Installer)`](https://github.com/MananDua28/Canvas-Downloader/releases) | Windows Setup wizard with desktop shortcut |
-| **Windows** | [`.exe (Portable)`](https://github.com/MananDua28/Canvas-Downloader/releases) | Zero-install standalone executable |
+| **macOS (Apple Silicon & Intel)** | [📥 **Download Modula-1.0.0.dmg**](https://github.com/MananDua28/Canvas-Downloader/releases/download/v1.0.1/Modula-1.0.0-arm64.dmg) | Direct Apple Disk Image installer (.dmg) |
+| **Release Page** | [View GitHub Release v1.0.1](https://github.com/MananDua28/Canvas-Downloader/releases/tag/v1.0.1) | View release notes, source code, and assets |
 
 ---
 
