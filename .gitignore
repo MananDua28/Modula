@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Builds & Binaries
+dist/
+build/
+release-assets/
+
+# Logs & Cache
+*.log
+npm-debug.log*
+.eslintcache
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Config
+.env
+.env.local

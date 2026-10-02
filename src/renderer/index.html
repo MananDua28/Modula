@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modula</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-dark">
+  <!-- Window Drag Region (macOS Titlebar) -->
+  <div class="window-titlebar">
+    <div class="titlebar-drag"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar: Course Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-logo">
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none">
+              <rect width="64" height="64" rx="16" fill="var(--bg-card)"/>
+              <rect x="0.5" y="0.5" width="63" height="63" rx="15.5" stroke="var(--border-subtle)"/>
+              <path d="M32 44L47 35.5L32 27L17 35.5L32 44Z" fill="var(--brand-slab-1)" stroke="var(--border-bold)" stroke-width="1.2"/>
+              <path d="M32 37L47 28.5L32 20L17 28.5L32 37Z" fill="var(--brand-slab-2)" stroke="var(--border-bold)" stroke-width="1.2"/>
+              <path d="M32 30L47 21.5L32 13L17 21.5L32 30Z" fill="var(--brand-slab-3)" stroke="var(--brand-slab-stroke)" stroke-width="1.2"/>
+              <circle cx="32" cy="18" r="4.5" fill="#E13F2B"/>
+              <circle cx="32" cy="18" r="6.5" stroke="#E13F2B" stroke-opacity="0.4" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">Modula</span>
+            <span class="brand-tag">Canvas Sync</span>
+          </div>
+        </div>
+
+        <button id="btnSettingsOpen" class="icon-btn" title="Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Search Courses -->
+      <div class="sidebar-search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="courseSearchInput" placeholder="Filter courses...">
+      </div>
+
+      <!-- Courses List -->
+      <div class="courses-nav">
+        <div class="section-label">ENROLLED COURSES</div>
+        <div id="coursesList" class="courses-list">
+          <div class="sidebar-loading">
+            <span class="spinner"></span> Loading courses...
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer (User & Sync Status) -->
+      <div class="sidebar-footer">
+        <div class="user-profile" id="userProfileBadge">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="user-meta">
+            <span class="user-name" id="userName">Connecting...</span>
+            <span class="user-status" id="userStatus">Not connected</span>
+          </div>
+        </div>
+        <button id="btnThemeToggle" class="icon-btn" title="Toggle Theme">
+          <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Top Action Bar -->
+      <header class="top-bar">
+        <div class="course-header-info">
+          <h1 id="currentCourseTitle" class="course-title">Select a Course</h1>
+          <span id="currentCourseCode" class="course-code"></span>
+        </div>
+
+        <div class="top-actions">
+          <!-- Auto-Sync Status Pill -->
+          <div class="sync-pill" id="syncStatusPill">
+            <span class="sync-dot"></span>
+            <span class="sync-text" id="syncStatusText">Synced</span>
+            <button id="btnTriggerSync" class="sync-refresh-btn" title="Sync with Canvas now">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Download Entire Course Button -->
+          <button id="btnDownloadCourse" class="btn btn-primary" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Download All Modules</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Search & Filters Toolbar -->
+      <div class="toolbar">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="moduleFilterInput" placeholder="Filter module items, slides, notes, assignments...">
+        </div>
+
+        <div class="toolbar-stats" id="courseStats">
+          <!-- e.g. 11 Modules · 38 Items -->
+        </div>
+
+        <div class="toolbar-actions">
+          <button id="btnExpandAll" class="btn btn-ghost">Expand All</button>
+          <button id="btnCollapseAll" class="btn btn-ghost">Collapse All</button>
+        </div>
+      </div>
+
+      <!-- Modules Container -->
+      <section id="modulesContainer" class="modules-container">
+        <!-- Rendered dynamically -->
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <h3>Select a course to view modules</h3>
+          <p>Or configure your Canvas API token in Settings to fetch your course materials.</p>
+          <button id="btnEmptySetup" class="btn btn-primary">Open Settings</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Bottom Active Downloads Drawer -->
+  <div id="downloadsDrawer" class="downloads-drawer">
+    <div class="drawer-header" id="drawerHeaderToggle">
+      <div class="drawer-summary">
+        <span class="pulse-indicator"></span>
+        <span id="drawerSummaryText">Downloads</span>
+      </div>
+      <div class="drawer-actions">
+        <button id="btnOpenDownloadsFolder" class="btn btn-ghost btn-sm" title="Open Download Folder">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Open Folder</span>
+        </button>
+        <button id="btnToggleDrawer" class="icon-btn-sm" title="Toggle Queue List">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="drawerQueueList" class="drawer-queue-list">
+      <!-- Active items rendered here -->
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2>Modula Settings</h2>
+          <p>Manage your Canvas connection and automated sync preferences.</p>
+        </div>
+        <button id="btnSettingsClose" class="icon-btn" title="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Section 1: Canvas Connection -->
+        <div class="setting-group">
+          <label class="setting-label">Canvas Institution Base URL</label>
+          <div class="input-with-presets">
+            <input type="url" id="settingBaseUrl" placeholder="https://canvas.bham.ac.uk">
+          </div>
+          <div class="preset-pills">
+            <span class="preset-pill" data-url="https://canvas.bham.ac.uk">Birmingham</span>
+            <span class="preset-pill" data-url="https://canvas.ox.ac.uk">Oxford</span>
+            <span class="preset-pill" data-url="https://canvas.manchester.ac.uk">Manchester</span>
+            <span class="preset-pill" data-url="https://canvas.instructure.com">Canvas Free</span>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="label-with-hint">
+            <label class="setting-label">Canvas Personal API Access Token</label>
+            <a href="#" id="linkTokenHelp" class="setting-hint">How to get this?</a>
+          </div>
+          <div class="input-password-group">
+            <input type="password" id="settingToken" placeholder="Paste your Canvas API access token...">
+            <button id="btnToggleTokenVisibility" class="icon-btn-inner" title="Toggle visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          <div id="tokenHelpBox" class="hint-card hidden">
+            <strong>Where to generate your API token in Canvas:</strong>
+            <ol>
+              <li>Log in to your Canvas instance (e.g. <code>canvas.bham.ac.uk</code>).</li>
+              <li>Click your profile icon on the left navigation bar $\rightarrow$ <strong>Settings</strong>.</li>
+              <li>Scroll down to <strong>Approved Integrations</strong> and click <strong>+ New Access Token</strong>.</li>
+              <li>Give it a purpose (e.g., <em>Modula</em>) and generate. Copy and paste the token here!</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Section 2: Download Destination -->
+        <div class="setting-group">
+          <label class="setting-label">Download Directory</label>
+          <div class="input-with-button">
+            <input type="text" id="settingDownloadPath" readonly placeholder="Default: ~/Downloads/Modula">
+            <button id="btnChooseFolder" class="btn btn-secondary">Choose...</button>
+          </div>
+        </div>
+
+        <!-- Section 3: Auto-Sync & Background Updates -->
+        <div class="setting-group">
+          <div class="switch-row">
+            <div>
+              <div class="setting-label">Background Auto-Sync</div>
+              <div class="setting-desc">Check for new modules and lecture slides in the background automatically.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="settingAutoSync">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-group" id="syncIntervalGroup">
+          <label class="setting-label">Sync Frequency</label>
+          <select id="settingSyncInterval" class="setting-select">
+            <option value="5">Every 5 minutes</option>
+            <option value="15">Every 15 minutes (Recommended)</option>
+            <option value="30">Every 30 minutes</option>
+            <option value="60">Every 1 hour</option>
+          </select>
+        </div>
+
+        <div class="setting-group">
+          <div class="switch-row">
+            <div>
+              <div class="setting-label">Auto-Download New Items</div>
+              <div class="setting-desc">Automatically download new lecture notes or files the moment they are posted.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="settingAutoDownloadNew">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div id="settingsAlert" class="alert-box hidden"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btnTestConnection" class="btn btn-secondary">Test Connection</button>
+        <button id="btnSaveSettings" class="btn btn-primary">Save & Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

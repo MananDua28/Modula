@@ -1,0 +1,66 @@
+{
+  "name": "modula",
+  "productName": "Modula",
+  "version": "1.0.0",
+  "description": "Minimalist Canvas LMS module manager, offline downloader, and real-time sync hub.",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:all": "electron-builder -mw"
+  },
+  "keywords": [
+    "canvas",
+    "lms",
+    "downloader",
+    "offline",
+    "education",
+    "sync",
+    "minimalist"
+  ],
+  "author": "Manan Dua",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^40.6.1",
+    "electron-builder": "^26.7.0"
+  },
+  "build": {
+    "appId": "com.manandua.modula",
+    "productName": "Modula",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.education",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Modula"
+    }
+  }
+}
