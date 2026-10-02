@@ -29,6 +29,7 @@
   "build": {
     "appId": "com.manandua.modula",
     "productName": "Modula",
+    "afterPack": "scripts/afterPack.js",
     "directories": {
       "output": "dist",
       "buildResources": "assets"
