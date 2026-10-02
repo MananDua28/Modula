@@ -204,6 +204,10 @@ class CanvasAPI {
     }));
   }
 
+  static async getModuleItems(baseUrl, token, courseId, moduleId) {
+    return await this.getPaginated(baseUrl, `courses/${courseId}/modules/${moduleId}/items`, token);
+  }
+
   static async getFileDetails(baseUrl, token, fileIdOrUrl) {
     let url = fileIdOrUrl;
     if (!url.startsWith('http')) {

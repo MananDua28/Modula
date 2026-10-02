@@ -285,16 +285,170 @@ class DownloadManager {
         const aData = await CanvasAPI.getAssignmentDetails(baseUrl, token, course.id, assignmentId);
         const title = this.sanitize(aData.name || item.title || 'assignment');
 
-        const mdPath = path.join(targetDir, `${title}.md`);
+        // Create dedicated assignment directory
+        const assignmentDir = path.join(targetDir, title);
+        fs.mkdirSync(assignmentDir, { recursive: true });
+
+        const rawDesc = aData.description || '';
+        const downloadedTemplates = [];
+        const urlToLocalMap = new Map();
+
+        // 1. Scan for linked files directly in description (/courses/:id/files/:id)
+        const fileMatches = [...rawDesc.matchAll(/\/courses\/\d+\/files\/(\d+)/g)];
+        const fileIds = [...new Set(fileMatches.map(m => m[1]))];
+
+        for (const fId of fileIds) {
+          try {
+            const fInfo = await CanvasAPI.getFileDetails(baseUrl, token, fId);
+            if (fInfo && fInfo.url) {
+              const fname = this.sanitize(fInfo.display_name || `template_${fId}`);
+              const fpath = path.join(assignmentDir, fname);
+              await CanvasAPI.downloadToFile(fInfo.url, token, fpath, null, abortSignal);
+              downloadedTemplates.push(fname);
+              urlToLocalMap.set(`/courses/${course.id}/files/${fId}`, `./${encodeURIComponent(fname)}`);
+            }
+          } catch (fe) {
+            console.warn(`[Assignment] Could not download file ${fId}:`, fe.message);
+          }
+        }
+
+        // 2. Scan for referenced modules in description (/courses/:id/modules/:id)
+        const modMatches = [...rawDesc.matchAll(/\/courses\/\d+\/modules\/(\d+)/g)];
+        const modIds = [...new Set(modMatches.map(m => m[1]))];
+
+        for (const mId of modIds) {
+          try {
+            const modItems = await CanvasAPI.getModuleItems(baseUrl, token, course.id, mId);
+            for (const mItem of modItems) {
+              if (mItem.type === 'File') {
+                try {
+                  const mFile = await CanvasAPI.getFileDetails(baseUrl, token, mItem.content_id || mItem.url);
+                  if (mFile && mFile.url) {
+                    const fname = this.sanitize(mFile.display_name || mItem.title);
+                    const fpath = path.join(assignmentDir, fname);
+                    if (!fs.existsSync(fpath)) {
+                      await CanvasAPI.downloadToFile(mFile.url, token, fpath, null, abortSignal);
+                      downloadedTemplates.push(fname);
+                    }
+                    urlToLocalMap.set(`/courses/${course.id}/modules/${mId}`, `./${encodeURIComponent(fname)}`);
+                  }
+                } catch (mfe) {
+                  console.warn(`[Assignment] Could not fetch module file:`, mfe.message);
+                }
+              } else if (mItem.type === 'Page') {
+                try {
+                  const pUrl = mItem.page_url || (mItem.url ? mItem.url.split('/').pop() : null);
+                  if (pUrl) {
+                    const pData = await CanvasAPI.getPageDetails(baseUrl, token, course.id, pUrl);
+                    const pBody = pData.body || '';
+                    const pFileMatches = [...pBody.matchAll(/\/courses\/\d+\/files\/(\d+)/g)];
+                    for (const pm of pFileMatches) {
+                      const pFid = pm[1];
+                      try {
+                        const pfInfo = await CanvasAPI.getFileDetails(baseUrl, token, pFid);
+                        if (pfInfo && pfInfo.url) {
+                          const pfName = this.sanitize(pfInfo.display_name || `page_file_${pFid}`);
+                          const pfPath = path.join(assignmentDir, pfName);
+                          if (!fs.existsSync(pfPath)) {
+                            await CanvasAPI.downloadToFile(pfInfo.url, token, pfPath, null, abortSignal);
+                            downloadedTemplates.push(pfName);
+                          }
+                          urlToLocalMap.set(`/courses/${course.id}/modules/${mId}`, `./${encodeURIComponent(pfName)}`);
+                        }
+                      } catch (_) {}
+                    }
+                  }
+                } catch (_) {}
+              }
+            }
+          } catch (me) {
+            console.warn(`[Assignment] Could not fetch referenced module ${mId}:`, me.message);
+          }
+        }
+
+        // 3. Scan for direct attachments on the assignment object
+        if (Array.isArray(aData.attachments)) {
+          for (const att of aData.attachments) {
+            try {
+              if (att.url) {
+                const fname = this.sanitize(att.display_name || att.filename || 'attachment');
+                const fpath = path.join(assignmentDir, fname);
+                if (!fs.existsSync(fpath)) {
+                  await CanvasAPI.downloadToFile(att.url, token, fpath, null, abortSignal);
+                  downloadedTemplates.push(fname);
+                }
+              }
+            } catch (_) {}
+          }
+        }
+
+        // 4. Convert description to markdown and rewrite links to point to local files
+        let mdDesc = this.htmlToMarkdown(rawDesc);
+        for (const [onlineUrl, localRel] of urlToLocalMap.entries()) {
+          mdDesc = mdDesc.split(onlineUrl).join(localRel);
+        }
+
         const dueAt = aData.due_at ? new Date(aData.due_at).toLocaleString() : 'None';
         const points = aData.points_possible || 'Unspecified';
+        const subTypes = (aData.submission_types || []).join(', ') || 'online';
 
-        const content = `# ${aData.name}\n\n- **Due Date:** ${dueAt}\n- **Points:** ${points}\n- **Canvas URL:** ${aData.html_url}\n\n## Instructions\n\n${this.htmlToMarkdown(aData.description || '')}`;
-        fs.writeFileSync(mdPath, content, 'utf8');
+        // 5. Construct Markdown with offline files list and complete rubric
+        const mdLines = [
+          `# ${aData.name}`,
+          ``,
+          `- **Due Date:** ${dueAt}`,
+          `- **Points / Weight:** ${points}`,
+          `- **Submission Types:** ${subTypes}`,
+          `- **Folder Location:** \`./${title}\``,
+          ``,
+          `## Instructions & Requirements`,
+          ``,
+          mdDesc,
+          ``
+        ];
+
+        if (downloadedTemplates.length > 0) {
+          mdLines.push(`## Downloaded Templates & Guidelines (Offline Access)`);
+          mdLines.push(``);
+          for (const dt of [...new Set(downloadedTemplates)]) {
+            mdLines.push(`- 📄 **[${dt}](./${encodeURIComponent(dt)})**`);
+          }
+          mdLines.push(``);
+        }
+
+        // 6. Rubric Table
+        if (Array.isArray(aData.rubric) && aData.rubric.length > 0) {
+          mdLines.push(`## Assessment Criteria & Marking Rubric`);
+          mdLines.push(``);
+          mdLines.push(`| Criterion | Points | Description |`);
+          mdLines.push(`| :--- | :--- | :--- |`);
+          for (const crit of aData.rubric) {
+            const cDesc = (crit.description || '').replace(/\|/g, '-');
+            const cPts = crit.points !== undefined ? `${crit.points} pts` : '';
+            const cLong = (crit.long_description || '').replace(/\|/g, '-');
+            mdLines.push(`| **${cDesc}** | **${cPts}** | ${cLong} |`);
+          }
+          mdLines.push(``);
+        }
+
+        const fullContent = mdLines.join('\n');
+        
+        // Save inside the dedicated folder
+        const folderReadme = path.join(assignmentDir, 'README.md');
+        fs.writeFileSync(folderReadme, fullContent, 'utf8');
+
+        // Also save at root of targetDir with links pointing into the folder
+        const mdPath = path.join(targetDir, `${title}.md`);
+        let rootContent = fullContent;
+        // Adjust relative links for the root file
+        for (const dt of downloadedTemplates) {
+          rootContent = rootContent.split(`./${encodeURIComponent(dt)}`).join(`./${encodeURIComponent(title)}/${encodeURIComponent(dt)}`);
+        }
+        fs.writeFileSync(mdPath, rootContent, 'utf8');
 
         this.configStore.recordDownload(item.id, {
           localPath: mdPath,
-          size: Buffer.byteLength(content),
+          size: Buffer.byteLength(fullContent),
           title: item.title,
           courseId: course.id,
           moduleId: module.id
