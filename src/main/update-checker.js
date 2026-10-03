@@ -5,7 +5,7 @@ class UpdateChecker {
   constructor(mainWindow) {
     this.mainWindow = mainWindow;
     this.repoOwner = 'MananDua28';
-    this.repoName = 'Canvas-Downloader';
+    this.repoName = 'Modula';
     try {
       this.currentVersion = (app && typeof app.getVersion === 'function') ? app.getVersion() : require('../../package.json').version;
     } catch {
