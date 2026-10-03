@@ -64,5 +64,15 @@ contextBridge.exposeInMainWorld('modula', {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('sync:status', handler);
     return () => ipcRenderer.removeListener('sync:status', handler);
+  },
+
+  // App Version & Updates
+  getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+  checkForUpdates: () => ipcRenderer.invoke('app:check-for-updates'),
+  openExternal: (url) => ipcRenderer.invoke('system:open-external', url),
+  onUpdateAvailable: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('app:update-available', handler);
+    return () => ipcRenderer.removeListener('app:update-available', handler);
   }
 });

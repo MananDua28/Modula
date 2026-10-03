@@ -4,11 +4,13 @@ const ConfigStore = require('./config-store');
 const CanvasAPI = require('./canvas-api');
 const DownloadManager = require('./download-manager');
 const SyncEngine = require('./sync-engine');
+const UpdateChecker = require('./update-checker');
 
 let mainWindow = null;
 let configStore = null;
 let downloadManager = null;
 let syncEngine = null;
+let updateChecker = null;
 
 function createWindow() {
   configStore = new ConfigStore();
@@ -36,11 +38,19 @@ function createWindow() {
 
   downloadManager = new DownloadManager(configStore, mainWindow);
   syncEngine = new SyncEngine(configStore, downloadManager, mainWindow);
+  updateChecker = new UpdateChecker(mainWindow);
 
   mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
   // Start background auto-sync
   syncEngine.start();
+
+  // Check for app updates 4 seconds after launch
+  setTimeout(() => {
+    if (updateChecker) {
+      updateChecker.checkForUpdates(false).catch(err => console.warn('Auto update check failed:', err.message));
+    }
+  }, 4000);
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -155,3 +165,24 @@ ipcMain.handle('sync:trigger', async () => {
   }
   return false;
 });
+
+// App Version & Updates
+ipcMain.handle('app:get-version', () => {
+  return app.getVersion();
+});
+
+ipcMain.handle('app:check-for-updates', async () => {
+  if (updateChecker) {
+    return await updateChecker.checkForUpdates(true);
+  }
+  return { updateAvailable: false, currentVersion: app.getVersion() };
+});
+
+ipcMain.handle('system:open-external', async (_event, url) => {
+  if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+    await shell.openExternal(url);
+    return true;
+  }
+  return false;
+});
+

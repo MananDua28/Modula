@@ -91,6 +91,23 @@
 
     <!-- Main Workspace -->
     <main class="main-content">
+      <!-- Update Banner (Shown when an update is available) -->
+      <div id="updateBanner" class="update-banner hidden">
+        <div class="update-banner-left">
+          <span class="update-badge">UPDATE</span>
+          <span id="updateBannerText" class="update-banner-text">A newer version of Modula is available.</span>
+        </div>
+        <div class="update-banner-actions">
+          <button id="btnBannerDownload" class="btn btn-primary btn-sm">Download Update</button>
+          <button id="btnBannerDismiss" class="icon-btn-sm" title="Dismiss">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <!-- Top Action Bar -->
       <header class="top-bar">
         <div class="course-header-info">
@@ -284,7 +301,21 @@
               <input type="checkbox" id="settingAutoDownloadNew">
               <span class="slider"></span>
             </label>
+        <!-- Section 4: App Updates -->
+        <div class="setting-group" style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+          <div class="switch-row" style="align-items: center;">
+            <div>
+              <div class="setting-label">Modula Version</div>
+              <div class="setting-desc" id="appVersionDisplay">Modula v1.0.1</div>
+            </div>
+            <button id="btnCheckUpdates" class="btn btn-secondary btn-sm" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span id="btnCheckUpdatesText">Check for Updates</span>
+            </button>
           </div>
+          <div id="updateNoticeBox" class="update-notice-box hidden"></div>
         </div>
 
         <div id="settingsAlert" class="alert-box hidden"></div>

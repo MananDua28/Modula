@@ -71,6 +71,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnTestConnection: document.getElementById('btnTestConnection'),
     btnSaveSettings: document.getElementById('btnSaveSettings'),
 
+    // App Updates
+    updateBanner: document.getElementById('updateBanner'),
+    updateBannerText: document.getElementById('updateBannerText'),
+    btnBannerDownload: document.getElementById('btnBannerDownload'),
+    btnBannerDismiss: document.getElementById('btnBannerDismiss'),
+    appVersionDisplay: document.getElementById('appVersionDisplay'),
+    btnCheckUpdates: document.getElementById('btnCheckUpdates'),
+    btnCheckUpdatesText: document.getElementById('btnCheckUpdatesText'),
+    updateNoticeBox: document.getElementById('updateNoticeBox'),
+
     // Toast
     toast: document.getElementById('toast')
   };
@@ -81,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadConfig();
     await refreshDownloadHistory();
     await connectAndLoadCourses();
+    await initAppVersion();
   }
 
   // Configuration & Theme
@@ -109,6 +120,83 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => {
       elements.toast.classList.add('hidden');
     }, duration);
+  }
+
+  // App Updates
+  let latestUpdateInfo = null;
+
+  async function initAppVersion() {
+    try {
+      const version = await window.modula.getAppVersion();
+      if (elements.appVersionDisplay) {
+        elements.appVersionDisplay.textContent = `Modula v${version}`;
+      }
+    } catch (err) {
+      console.warn('Failed to retrieve app version:', err);
+    }
+  }
+
+  function handleUpdateAvailable(updateInfo) {
+    latestUpdateInfo = updateInfo;
+    if (elements.updateBanner && elements.updateBannerText) {
+      elements.updateBannerText.textContent = `Modula v${updateInfo.latestVersion} is available with new updates!`;
+      elements.updateBanner.classList.remove('hidden');
+    }
+    if (elements.updateNoticeBox) {
+      elements.updateNoticeBox.className = 'update-notice-box has-update';
+      elements.updateNoticeBox.innerHTML = `
+        <span>New release <strong>v${escapeHtml(updateInfo.latestVersion)}</strong> is available!</span>
+        <button class="btn btn-primary btn-sm btn-update-action" type="button">Download Update</button>
+      `;
+      const btnAction = elements.updateNoticeBox.querySelector('.btn-update-action');
+      if (btnAction) {
+        btnAction.addEventListener('click', () => downloadAppUpdate(updateInfo));
+      }
+      elements.updateNoticeBox.classList.remove('hidden');
+    }
+  }
+
+  async function downloadAppUpdate(updateInfo) {
+    if (!updateInfo || !updateInfo.downloadUrl) return;
+    showToast('Opening download link...');
+    await window.modula.openExternal(updateInfo.downloadUrl);
+  }
+
+  async function triggerManualUpdateCheck() {
+    if (!elements.btnCheckUpdates) return;
+    elements.btnCheckUpdates.disabled = true;
+    const originalText = elements.btnCheckUpdatesText.textContent;
+    elements.btnCheckUpdatesText.innerHTML = '<span class="spinner" style="width:11px;height:11px;"></span> Checking...';
+
+    if (elements.updateNoticeBox) {
+      elements.updateNoticeBox.classList.add('hidden');
+    }
+
+    try {
+      const result = await window.modula.checkForUpdates();
+      if (result.updateAvailable) {
+        handleUpdateAvailable(result);
+        showToast(`Update available: Modula v${result.latestVersion}`);
+      } else if (result.error) {
+        if (elements.updateNoticeBox) {
+          elements.updateNoticeBox.className = 'update-notice-box check-error';
+          elements.updateNoticeBox.textContent = `Update check failed: ${result.error}`;
+          elements.updateNoticeBox.classList.remove('hidden');
+        }
+      } else {
+        if (elements.updateNoticeBox) {
+          elements.updateNoticeBox.className = 'update-notice-box up-to-date';
+          elements.updateNoticeBox.textContent = `✓ Modula is up to date (v${result.currentVersion}).`;
+          elements.updateNoticeBox.classList.remove('hidden');
+        }
+        showToast('Modula is already up to date!');
+      }
+    } catch (err) {
+      console.warn('Update check failed:', err);
+    } finally {
+      elements.btnCheckUpdates.disabled = false;
+      elements.btnCheckUpdatesText.textContent = originalText;
+    }
   }
 
   // Download History
@@ -762,6 +850,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.syncStatusText.textContent = 'Sync Error';
       }
     });
+
+    // App Updates Listeners
+    if (window.modula.onUpdateAvailable) {
+      window.modula.onUpdateAvailable((info) => {
+        handleUpdateAvailable(info);
+      });
+    }
+
+    if (elements.btnBannerDownload) {
+      elements.btnBannerDownload.addEventListener('click', () => {
+        if (latestUpdateInfo) {
+          downloadAppUpdate(latestUpdateInfo);
+        }
+      });
+    }
+
+    if (elements.btnBannerDismiss) {
+      elements.btnBannerDismiss.addEventListener('click', () => {
+        elements.updateBanner.classList.add('hidden');
+      });
+    }
+
+    if (elements.btnCheckUpdates) {
+      elements.btnCheckUpdates.addEventListener('click', triggerManualUpdateCheck);
+    }
   }
 
   // Helpers
