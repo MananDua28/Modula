@@ -649,6 +649,19 @@ body {
   transition: width 0.2s linear;
 }
 
+/* Utility Classes */
+.hidden {
+  display: none !important;
+}
+
+.btn-block {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;
@@ -933,24 +946,35 @@ body {
   text-decoration: underline;
 }
 
+input[type="email"],
 input[type="url"],
 input[type="password"],
 input[type="text"],
 .setting-select {
+  font-family: inherit;
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: var(--radius-sm);
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   color: var(--text-main);
-  font-size: 12.5px;
+  font-size: 13px;
   outline: none;
   transition: var(--transition);
+  box-sizing: border-box;
+}
+
+input[type="email"]::placeholder,
+input[type="url"]::placeholder,
+input[type="password"]::placeholder,
+input[type="text"]::placeholder {
+  color: var(--text-subtle);
 }
 
 input:focus,
 .setting-select:focus {
   border-color: var(--color-canvas-red);
+  box-shadow: 0 0 0 2px var(--color-canvas-red-soft);
 }
 
 .input-password-group {
