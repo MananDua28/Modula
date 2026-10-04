@@ -1339,9 +1339,9 @@ body.theme-light .moon-icon { display: block; }
 .otp-code-input {
   width: 100%;
   font-family: "JetBrains Mono", Menlo, Consolas, monospace !important;
-  font-size: 22px !important;
+  font-size: 26px !important;
   font-weight: 700 !important;
-  letter-spacing: 0.22em !important;
+  letter-spacing: 0.35em !important;
   text-align: center !important;
   padding: 12px !important;
   background: var(--bg-input) !important;

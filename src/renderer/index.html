@@ -228,7 +228,7 @@
 
           <div style="margin-top: 14px;">
             <button id="btnSendOtp" class="btn btn-primary btn-block">
-              <span id="btnSendOtpText">Send Verification Code</span>
+              <span id="btnSendOtpText">Send 6-Digit Verification Code</span>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
@@ -240,13 +240,13 @@
         <!-- Step 2: Code Verification (Initially Hidden) -->
         <div id="onboardingStepOtp" class="hidden">
           <div class="otp-notice">
-            A confirmation code was sent to <strong id="onboardingSentEmail">student@bham.ac.uk</strong>. Check your inbox (or spam folder).
+            A 6-digit confirmation code was sent to <strong id="onboardingSentEmail">student@bham.ac.uk</strong>. Check your inbox (or spam folder).
           </div>
 
           <div class="setting-group">
-            <label class="setting-label">Enter Verification Code</label>
+            <label class="setting-label">Enter 6-Digit Verification Code</label>
             <div class="otp-input-wrapper">
-              <input type="text" id="onboardingOtpInput" maxlength="8" placeholder="• • • • • • • •" class="otp-code-input" autocomplete="one-time-code">
+              <input type="text" id="onboardingOtpInput" maxlength="6" placeholder="• • • • • •" class="otp-code-input" autocomplete="one-time-code">
             </div>
           </div>
 

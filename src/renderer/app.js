@@ -759,7 +759,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       elements.btnSendOtp.disabled = true;
-      elements.btnSendOtpText.textContent = 'Sending Code...';
+      elements.btnSendOtpText.textContent = 'Sending 6-Digit Code...';
 
       try {
         const result = await window.modula.sendStudentOtp(email);
@@ -781,7 +781,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.onboardingAlert.textContent = err.message || 'Network error sending verification code.';
       } finally {
         elements.btnSendOtp.disabled = false;
-        elements.btnSendOtpText.textContent = 'Send Verification Code';
+        elements.btnSendOtpText.textContent = 'Send 6-Digit Verification Code';
       }
     }
 
@@ -792,7 +792,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (!token) {
         elements.onboardingAlert.className = 'alert-box alert-error';
-        elements.onboardingAlert.textContent = 'Please enter the verification code.';
+        elements.onboardingAlert.textContent = 'Please enter the 6-digit verification code.';
         return;
       }
 
