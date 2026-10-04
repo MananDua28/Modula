@@ -144,7 +144,7 @@ class AuthService {
     const appVersion = app.isPackaged ? app.getVersion() : '1.0.2';
 
     try {
-      const response = await fetch(`${this.supabaseUrl}/auth/v1/verify`, {
+      let response = await fetch(`${this.supabaseUrl}/auth/v1/verify`, {
         method: 'POST',
         headers: {
           'apikey': this.supabaseKey,
@@ -157,7 +157,28 @@ class AuthService {
         })
       });
 
-      const data = await response.json().catch(() => ({}));
+      let data = await response.json().catch(() => ({}));
+
+      // If 'email' type fails (e.g. for initial account registration), try 'signup' type
+      if (!response.ok) {
+        const retryResponse = await fetch(`${this.supabaseUrl}/auth/v1/verify`, {
+          method: 'POST',
+          headers: {
+            'apikey': this.supabaseKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'signup',
+            email: email,
+            token: cleanToken
+          })
+        });
+        const retryData = await retryResponse.json().catch(() => ({}));
+        if (retryResponse.ok) {
+          response = retryResponse;
+          data = retryData;
+        }
+      }
 
       if (!response.ok) {
         const errorMsg = data.msg || data.message || data.error_description || 'Invalid or expired verification code.';
