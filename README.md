@@ -58,6 +58,8 @@ Download the latest version for your operating system:
 | **Windows (10 / 11 / 64-bit)** | [📥 **Download Modula for Windows (.exe)**](https://github.com/MananDua28/Canvas-Downloader/releases/download/v1.0.1/Modula-Setup-1.0.0.exe) | `.exe` Setup Installer |
 | **All Releases & Assets** | [View GitHub Release v1.0.1](https://github.com/MananDua28/Canvas-Downloader/releases/tag/v1.0.1) | Release notes & source code |
 
+https://tooomm.github.io/github-release-stats/?username=MananDua28&repository=Modula
+
 > [!NOTE]
 > **For macOS Users:** Since Modula is an open-source student tool built without an expensive Apple Developer certificate ($99/yr), macOS Gatekeeper may show *"Modula is damaged and can't be opened"* on downloaded files.
 > To launch it, simply run this one-time command in your Terminal:
