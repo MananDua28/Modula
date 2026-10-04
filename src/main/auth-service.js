@@ -116,7 +116,7 @@ class AuthService {
 
       return {
         success: true,
-        message: `6-digit verification code sent to ${email}. Please check your inbox.`,
+        message: `Verification code sent to ${email}. Please check your inbox.`,
         email: email
       };
     } catch (err) {
@@ -130,7 +130,7 @@ class AuthService {
 
   async verifyOtp(rawEmail, token) {
     if (!token || !token.trim()) {
-      return { success: false, error: 'Please enter the 6-digit verification code.' };
+      return { success: false, error: 'Please enter the verification code.' };
     }
 
     const cleanToken = token.trim().replace(/\s+/g, '');
