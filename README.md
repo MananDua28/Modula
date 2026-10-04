@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="#-direct-downloads"><img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-09090B?style=flat-square" alt="Platform"></a>
-  <a href="https://github.com/MananDua28/Modula/releases/latest"><img src="https://img.shields.io/badge/Latest-v1.0.2-E13F2B?style=flat-square" alt="Latest Release"></a>
+  <a href="https://github.com/MananDua28/Modula/releases/latest"><img src="https://img.shields.io/badge/Latest-v1.0.3-E13F2B?style=flat-square" alt="Latest Release"></a>
   <a href="#-privacy--security"><img src="https://img.shields.io/badge/Privacy-100%25%20Local-10B981?style=flat-square" alt="Privacy"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License"></a>
 </p>
@@ -31,8 +31,8 @@ Download the latest version of Modula for your operating system:
 
 | Operating System | Download Link | Format | Architecture |
 | :--- | :--- | :--- | :--- |
-| **macOS** | [📥 **Download Modula for macOS (.dmg)**](https://github.com/MananDua28/Modula/releases/download/v1.0.2/Modula-1.0.2-arm64.dmg) | `.dmg` Package | Apple Silicon & Intel |
-| **Windows** | [📥 **Download Modula for Windows (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.2/Modula-Setup-1.0.2.exe) | `.exe` Setup Installer | 64-bit (Windows 10 / 11) |
+| **macOS** | [📥 **Download Modula for macOS (.dmg)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-1.0.3-arm64.dmg) | `.dmg` Package | Apple Silicon & Intel |
+| **Windows** | [📥 **Download Modula for Windows (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Setup-1.0.3.exe) | `.exe` Setup Installer | 64-bit (Windows 10 / 11) |
 | **All Releases** | [View GitHub Releases Archive](https://github.com/MananDua28/Modula/releases) | `.zip`, `.exe`, `.dmg` | All Platforms |
 
 > [!TIP]
