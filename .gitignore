@@ -17,6 +17,9 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Config
+# Config & Secrets
 .env
 .env.local
+*.rtf
+*.pem
+*.key

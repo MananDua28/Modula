@@ -74,5 +74,10 @@ contextBridge.exposeInMainWorld('modula', {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('app:update-available', handler);
     return () => ipcRenderer.removeListener('app:update-available', handler);
-  }
+  },
+
+  // Student Verification & Auth
+  sendStudentOtp: (email) => ipcRenderer.invoke('auth:send-otp', email),
+  verifyStudentOtp: (email, token) => ipcRenderer.invoke('auth:verify-otp', { email, token }),
+  getAuthStatus: () => ipcRenderer.invoke('auth:get-status')
 });

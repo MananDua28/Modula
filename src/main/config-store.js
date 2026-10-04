@@ -17,7 +17,14 @@ class ConfigStore {
       syncInterval: 15, // in minutes
       autoSync: true,
       autoDownloadNew: false,
-      lastSyncTimestamp: null
+      lastSyncTimestamp: null,
+      deviceId: '',
+      studentEmail: '',
+      studentDomain: '',
+      isVerified: false,
+      verifiedAt: null,
+      userId: null,
+      sessionToken: null
     };
 
     this.config = this.loadConfig();

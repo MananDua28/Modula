@@ -202,6 +202,73 @@
     </div>
   </div>
 
+  <!-- Student Verification & Onboarding Modal -->
+  <div id="onboardingModal" class="modal-overlay hidden">
+    <div class="modal-card onboarding-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="onboarding-badge-tag">STUDENT VERIFICATION</div>
+          <h2>Welcome to Modula</h2>
+          <p>Modula is exclusively for university students. Verify your student email to begin.</p>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <!-- Step 1: Email Input -->
+        <div id="onboardingStepEmail">
+          <div class="setting-group">
+            <label class="setting-label">Institutional Student Email</label>
+            <div class="input-with-button">
+              <input type="email" id="onboardingEmailInput" placeholder="e.g. your.name@student.bham.ac.uk" autocomplete="email">
+            </div>
+            <div class="onboarding-hints">
+              <span class="hint-pill">✓ UK Universities (.ac.uk)</span>
+              <span class="hint-pill">✓ US & Global (.edu)</span>
+              <span class="hint-pill">✓ Accredited Campus Domains</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 14px;">
+            <button id="btnSendOtp" class="btn btn-primary btn-block">
+              <span id="btnSendOtpText">Send 6-Digit Verification Code</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Code Verification (Initially Hidden) -->
+        <div id="onboardingStepOtp" class="hidden">
+          <div class="otp-notice">
+            A 6-digit confirmation code was sent to <strong id="onboardingSentEmail">student@bham.ac.uk</strong>. Check your inbox (or spam folder).
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">Enter 6-Digit Verification Code</label>
+            <div class="otp-input-wrapper">
+              <input type="text" id="onboardingOtpInput" maxlength="6" placeholder="• • • • • •" class="otp-code-input" autocomplete="one-time-code">
+            </div>
+          </div>
+
+          <div class="otp-actions-row">
+            <button id="btnVerifyOtp" class="btn btn-primary btn-block">
+              <span id="btnVerifyOtpText">Verify & Unlock Modula</span>
+            </button>
+            <div class="otp-links">
+              <button id="btnResendOtp" class="btn-link" type="button">Resend Code</button>
+              <span class="divider">·</span>
+              <button id="btnChangeEmail" class="btn-link" type="button">Change Email</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="onboardingAlert" class="alert-box hidden"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings Modal -->
   <div id="settingsModal" class="modal-overlay hidden">
     <div class="modal-card">
@@ -219,6 +286,16 @@
       </div>
 
       <div class="modal-body">
+        <!-- Section 0: Verified Student Status -->
+        <div class="setting-group" id="verifiedStudentStatusGroup" style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle);">
+          <div class="switch-row" style="align-items: center;">
+            <div>
+              <div class="setting-label">Verified Student Account</div>
+              <div class="setting-desc" id="settingStudentEmailDisplay">Checking...</div>
+            </div>
+            <span class="verified-badge" id="settingVerifiedBadge">✓ Verified</span>
+          </div>
+        </div>
         <!-- Section 1: Canvas Connection -->
         <div class="setting-group">
           <label class="setting-label">Canvas Institution Base URL</label>

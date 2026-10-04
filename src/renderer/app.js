@@ -81,6 +81,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnCheckUpdatesText: document.getElementById('btnCheckUpdatesText'),
     updateNoticeBox: document.getElementById('updateNoticeBox'),
 
+    // Student Onboarding & Verification
+    onboardingModal: document.getElementById('onboardingModal'),
+    onboardingStepEmail: document.getElementById('onboardingStepEmail'),
+    onboardingStepOtp: document.getElementById('onboardingStepOtp'),
+    onboardingEmailInput: document.getElementById('onboardingEmailInput'),
+    btnSendOtp: document.getElementById('btnSendOtp'),
+    btnSendOtpText: document.getElementById('btnSendOtpText'),
+    onboardingSentEmail: document.getElementById('onboardingSentEmail'),
+    onboardingOtpInput: document.getElementById('onboardingOtpInput'),
+    btnVerifyOtp: document.getElementById('btnVerifyOtp'),
+    btnVerifyOtpText: document.getElementById('btnVerifyOtpText'),
+    btnResendOtp: document.getElementById('btnResendOtp'),
+    btnChangeEmail: document.getElementById('btnChangeEmail'),
+    onboardingAlert: document.getElementById('onboardingAlert'),
+    settingStudentEmailDisplay: document.getElementById('settingStudentEmailDisplay'),
+    settingVerifiedBadge: document.getElementById('settingVerifiedBadge'),
+
     // Toast
     toast: document.getElementById('toast')
   };
@@ -88,9 +105,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize App
   async function init() {
     setupEventListeners();
+    setupOnboardingListeners();
     await loadConfig();
     await refreshDownloadHistory();
-    await connectAndLoadCourses();
+    const isAuthed = await checkAuthAndOnboard();
+    if (isAuthed) {
+      await connectAndLoadCourses();
+    }
     await initAppVersion();
   }
 
@@ -206,6 +227,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Canvas Courses & Modules
   async function connectAndLoadCourses() {
+    const authStatus = await window.modula.getAuthStatus();
+    if (!authStatus.isVerified) {
+      checkAuthAndOnboard();
+      return;
+    }
+
     if (!state.config.baseUrl || !state.config.token) {
       elements.userName.textContent = 'Setup Required';
       elements.userStatus.textContent = 'Click to configure';
@@ -606,6 +633,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     elements.settingAutoSync.checked = state.config.autoSync !== false;
     elements.settingSyncInterval.value = String(state.config.syncInterval || 15);
     elements.settingAutoDownloadNew.checked = !!state.config.autoDownloadNew;
+
+    if (elements.settingStudentEmailDisplay) {
+      elements.settingStudentEmailDisplay.textContent = state.config.studentEmail || 'Verification Required';
+    }
+    if (elements.settingVerifiedBadge) {
+      if (state.config.isVerified) {
+        elements.settingVerifiedBadge.textContent = '✓ Verified Student';
+        elements.settingVerifiedBadge.className = 'verified-badge';
+      } else {
+        elements.settingVerifiedBadge.textContent = 'Unverified';
+        elements.settingVerifiedBadge.className = 'verified-badge unverified';
+      }
+    }
   }
 
   async function saveSettings() {
@@ -677,6 +717,167 @@ document.addEventListener('DOMContentLoaded', async () => {
     } finally {
       elements.btnTestConnection.disabled = false;
       elements.btnTestConnection.textContent = 'Test Connection';
+    }
+  }
+
+  // Student Onboarding & Verification Controller
+  async function checkAuthAndOnboard() {
+    const authStatus = await window.modula.getAuthStatus();
+    if (authStatus.isVerified && authStatus.studentEmail) {
+      elements.onboardingModal.classList.add('hidden');
+      if (elements.settingStudentEmailDisplay) {
+        elements.settingStudentEmailDisplay.textContent = authStatus.studentEmail;
+      }
+      if (elements.settingVerifiedBadge) {
+        elements.settingVerifiedBadge.textContent = '✓ Verified';
+        elements.settingVerifiedBadge.style.display = 'inline-block';
+      }
+      return true;
+    } else {
+      // Not verified: show onboarding modal
+      elements.onboardingModal.classList.remove('hidden');
+      elements.onboardingStepEmail.classList.remove('hidden');
+      elements.onboardingStepOtp.classList.add('hidden');
+      elements.onboardingAlert.className = 'alert-box hidden';
+      elements.userStatus.textContent = 'Verification Required';
+      return false;
+    }
+  }
+
+  function setupOnboardingListeners() {
+    let pendingVerificationEmail = '';
+
+    // Step 1: Send OTP
+    async function handleSendOtp() {
+      const email = elements.onboardingEmailInput.value.trim();
+      elements.onboardingAlert.className = 'alert-box hidden';
+
+      if (!email) {
+        elements.onboardingAlert.className = 'alert-box alert-error';
+        elements.onboardingAlert.textContent = 'Please enter your university student email.';
+        return;
+      }
+
+      elements.btnSendOtp.disabled = true;
+      elements.btnSendOtpText.textContent = 'Sending 6-Digit Code...';
+
+      try {
+        const result = await window.modula.sendStudentOtp(email);
+        if (result.success) {
+          pendingVerificationEmail = result.email;
+          elements.onboardingSentEmail.textContent = pendingVerificationEmail;
+          elements.onboardingStepEmail.classList.add('hidden');
+          elements.onboardingStepOtp.classList.remove('hidden');
+          elements.onboardingAlert.className = 'alert-box alert-success';
+          elements.onboardingAlert.textContent = result.message || 'Verification code sent! Check your inbox.';
+          elements.onboardingOtpInput.value = '';
+          elements.onboardingOtpInput.focus();
+        } else {
+          elements.onboardingAlert.className = 'alert-box alert-error';
+          elements.onboardingAlert.textContent = result.error || 'Failed to send verification code.';
+        }
+      } catch (err) {
+        elements.onboardingAlert.className = 'alert-box alert-error';
+        elements.onboardingAlert.textContent = err.message || 'Network error sending verification code.';
+      } finally {
+        elements.btnSendOtp.disabled = false;
+        elements.btnSendOtpText.textContent = 'Send 6-Digit Verification Code';
+      }
+    }
+
+    // Step 2: Verify OTP
+    async function handleVerifyOtp() {
+      const token = elements.onboardingOtpInput.value.trim();
+      elements.onboardingAlert.className = 'alert-box hidden';
+
+      if (!token) {
+        elements.onboardingAlert.className = 'alert-box alert-error';
+        elements.onboardingAlert.textContent = 'Please enter the 6-digit verification code.';
+        return;
+      }
+
+      elements.btnVerifyOtp.disabled = true;
+      elements.btnVerifyOtpText.textContent = 'Verifying Code...';
+
+      try {
+        const result = await window.modula.verifyStudentOtp(pendingVerificationEmail, token);
+        if (result.success) {
+          elements.onboardingModal.classList.add('hidden');
+          showToast(`🎉 Student identity verified! Welcome, ${result.email}`);
+          await loadConfig();
+
+          // If Canvas credentials are not set up yet, open settings for seamless setup
+          if (!state.config.baseUrl || !state.config.token) {
+            openSettingsModal();
+          } else {
+            await connectAndLoadCourses();
+          }
+        } else {
+          elements.onboardingAlert.className = 'alert-box alert-error';
+          elements.onboardingAlert.textContent = result.error || 'Invalid or expired verification code.';
+        }
+      } catch (err) {
+        elements.onboardingAlert.className = 'alert-box alert-error';
+        elements.onboardingAlert.textContent = err.message || 'Error verifying code.';
+      } finally {
+        elements.btnVerifyOtp.disabled = false;
+        elements.btnVerifyOtpText.textContent = 'Verify & Unlock Modula';
+      }
+    }
+
+    if (elements.btnSendOtp) {
+      elements.btnSendOtp.addEventListener('click', handleSendOtp);
+    }
+
+    if (elements.onboardingEmailInput) {
+      elements.onboardingEmailInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSendOtp();
+        }
+      });
+    }
+
+    if (elements.btnVerifyOtp) {
+      elements.btnVerifyOtp.addEventListener('click', handleVerifyOtp);
+    }
+
+    if (elements.onboardingOtpInput) {
+      elements.onboardingOtpInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleVerifyOtp();
+        }
+      });
+    }
+
+    if (elements.btnChangeEmail) {
+      elements.btnChangeEmail.addEventListener('click', () => {
+        elements.onboardingStepOtp.classList.add('hidden');
+        elements.onboardingStepEmail.classList.remove('hidden');
+        elements.onboardingAlert.className = 'alert-box hidden';
+        elements.onboardingEmailInput.focus();
+      });
+    }
+
+    if (elements.btnResendOtp) {
+      elements.btnResendOtp.addEventListener('click', async () => {
+        if (!pendingVerificationEmail) return;
+        elements.onboardingAlert.className = 'alert-box hidden';
+        try {
+          const res = await window.modula.sendStudentOtp(pendingVerificationEmail);
+          if (res.success) {
+            elements.onboardingAlert.className = 'alert-box alert-success';
+            elements.onboardingAlert.textContent = 'A new 6-digit code has been sent to your inbox.';
+          } else {
+            elements.onboardingAlert.className = 'alert-box alert-error';
+            elements.onboardingAlert.textContent = res.error || 'Failed to resend code.';
+          }
+        } catch (err) {
+          elements.onboardingAlert.className = 'alert-box alert-error';
+          elements.onboardingAlert.textContent = err.message || 'Error resending code.';
+        }
+      });
     }
   }
 

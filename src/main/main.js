@@ -5,12 +5,14 @@ const CanvasAPI = require('./canvas-api');
 const DownloadManager = require('./download-manager');
 const SyncEngine = require('./sync-engine');
 const UpdateChecker = require('./update-checker');
+const AuthService = require('./auth-service');
 
 let mainWindow = null;
 let configStore = null;
 let downloadManager = null;
 let syncEngine = null;
 let updateChecker = null;
+let authService = null;
 
 function createWindow() {
   configStore = new ConfigStore();
@@ -39,6 +41,10 @@ function createWindow() {
   downloadManager = new DownloadManager(configStore, mainWindow);
   syncEngine = new SyncEngine(configStore, downloadManager, mainWindow);
   updateChecker = new UpdateChecker(mainWindow);
+  authService = new AuthService(configStore);
+
+  // Send lightweight heartbeat for active user metrics
+  authService.sendHeartbeat().catch(() => {});
 
   mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
@@ -184,5 +190,27 @@ ipcMain.handle('system:open-external', async (_event, url) => {
     return true;
   }
   return false;
+});
+
+// Student Verification & Onboarding
+ipcMain.handle('auth:send-otp', async (_event, email) => {
+  if (authService) {
+    return await authService.sendOtp(email);
+  }
+  return { success: false, error: 'Auth service not initialized.' };
+});
+
+ipcMain.handle('auth:verify-otp', async (_event, { email, token }) => {
+  if (authService) {
+    return await authService.verifyOtp(email, token);
+  }
+  return { success: false, error: 'Auth service not initialized.' };
+});
+
+ipcMain.handle('auth:get-status', async () => {
+  if (authService) {
+    return authService.getAuthStatus();
+  }
+  return { isVerified: false };
 });
 
