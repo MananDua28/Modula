@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileMenu();
   detectOSAndAdaptCTA();
   initCopyCommand();
+  initDownloadTracking();
 });
 
 // Theme Management
@@ -149,6 +150,24 @@ function initCopyCommand() {
       // Fallback
       copyText.textContent = "Copied!";
       setTimeout(() => { copyText.textContent = "Copy Command"; }, 2000);
+    }
+  });
+}
+
+// Analytics Event Tracking for Downloads
+function initDownloadTracking() {
+  document.addEventListener('click', (e) => {
+    const downloadAnchor = e.target.closest('a[href*="/releases/download/"]');
+    if (!downloadAnchor) return;
+
+    const href = downloadAnchor.getAttribute('href') || '';
+    let platform = 'Unknown';
+    if (href.endsWith('.dmg')) platform = 'macOS (.dmg)';
+    else if (href.endsWith('.exe')) platform = 'Windows (.exe)';
+    else if (href.endsWith('.zip')) platform = 'macOS (.zip)';
+
+    if (typeof window.va === 'function') {
+      window.va('track', 'App Download', { platform: platform, file: href.split('/').pop() });
     }
   });
 }
