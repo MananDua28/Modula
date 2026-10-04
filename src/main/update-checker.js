@@ -17,39 +17,32 @@ class UpdateChecker {
    * Fetch latest release information from GitHub Releases API
    */
   async getLatestRelease() {
-    return new Promise((resolve, reject) => {
-      const options = {
-        hostname: 'api.github.com',
-        path: `/repos/${this.repoOwner}/${this.repoName}/releases/latest`,
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const response = await fetch(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/releases/latest`, {
+        signal: controller.signal,
         headers: {
           'User-Agent': `Modula-App/${this.currentVersion}`,
           'Accept': 'application/vnd.github.v3+json'
         }
-      };
-
-      const req = https.get(options, (res) => {
-        let data = '';
-        res.on('data', chunk => { data += chunk; });
-        res.on('end', () => {
-          if (res.statusCode >= 200 && res.statusCode < 300) {
-            try {
-              const release = JSON.parse(data);
-              resolve(release);
-            } catch (err) {
-              reject(new Error(`Failed to parse release JSON: ${err.message}`));
-            }
-          } else {
-            reject(new Error(`GitHub API returned status ${res.statusCode}`));
-          }
-        });
       });
 
-      req.on('error', (err) => reject(err));
-      req.setTimeout(10000, () => {
-        req.destroy();
-        reject(new Error('Update check request timed out'));
-      });
-    });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`GitHub API returned status ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        throw new Error('Update check request timed out');
+      }
+      throw err;
+    }
   }
 
   /**
