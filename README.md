@@ -50,19 +50,24 @@ Built with a strict Swiss-inspired aesthetic: pure obsidian black, clean white, 
 
 ## 📥 Direct Downloads
 
-Download the latest version for your operating system:
+Download the latest version of Modula for your operating system:
 
-| Operating System | Direct Download Link | Format |
-| :--- | :--- | :--- |
-| **macOS (Apple Silicon & Intel)** | [📥 **Download Modula for macOS (.dmg)**](https://github.com/MananDua28/Canvas-Downloader/releases/download/v1.0.1/Modula-1.0.0-arm64.dmg) | `.dmg` Installer |
-| **Windows (10 / 11 / 64-bit)** | [📥 **Download Modula for Windows (.exe)**](https://github.com/MananDua28/Canvas-Downloader/releases/download/v1.0.1/Modula-Setup-1.0.0.exe) | `.exe` Setup Installer |
-| **All Releases & Assets** | [View GitHub Release v1.0.1](https://github.com/MananDua28/Canvas-Downloader/releases/tag/v1.0.1) | Release notes & source code |
+| Operating System | Download Link | Format | Architecture |
+| :--- | :--- | :--- | :--- |
+| **macOS** | [📥 **Download Modula for macOS (.dmg)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-1.0.3-arm64.dmg) | `.dmg` Package (114 MB) | Apple Silicon & Intel |
+| **Windows (Setup)** | [📥 **Download Modula Setup Installer (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Setup-1.0.3.exe) | `.exe` NSIS Installer (97.7 MB) | 64-bit x64 (Windows 10 / 11) |
+| **Windows (Portable)** | [📥 **Download Modula Portable (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Portable-1.0.3.exe) | `.exe` Standalone (97.4 MB) | 64-bit x64 (No install required) |
+| **All Releases** | [View GitHub Releases Archive](https://github.com/MananDua28/Modula/releases) | `.zip`, `.exe`, `.dmg` | All Platforms |
 
-https://tooomm.github.io/github-release-stats/?username=MananDua28&repository=Modula
+> [!TIP]
+> **Windows Defender SmartScreen First Launch:**  
+> Because Modula is an independent open-source tool without a corporate certificate, Windows 10/11 may display *"Windows protected your PC"*.  
+> Simply click **More info** &rarr; **Run anyway**.
 
-> [!NOTE]
-> **For macOS Users:** Since Modula is an open-source student tool built without an expensive Apple Developer certificate ($99/yr), macOS Gatekeeper may show *"Modula is damaged and can't be opened"* on downloaded files.
-> To launch it, simply run this one-time command in your Terminal:
+> [!TIP]
+> **macOS Gatekeeper First-Time Launch:**  
+> Since Modula is an independent student project built without an Apple Developer certificate ($99/yr), macOS may show *"Modula is damaged and can't be opened"* on your first launch.  
+> Run this one-time command in your Terminal:
 > ```bash
 > xattr -cr /Applications/Modula.app
 > ```
