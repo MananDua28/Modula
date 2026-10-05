@@ -163,6 +163,7 @@ function initDownloadTracking() {
     const href = downloadAnchor.getAttribute('href') || '';
     let platform = 'Unknown';
     if (href.endsWith('.dmg')) platform = 'macOS (.dmg)';
+    else if (href.includes('Portable')) platform = 'Windows Portable (.exe)';
     else if (href.endsWith('.exe')) platform = 'Windows (.exe)';
     else if (href.endsWith('.zip')) platform = 'macOS (.zip)';
 

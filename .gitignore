@@ -23,3 +23,5 @@ Thumbs.db
 *.rtf
 *.pem
 *.key
+*.docx
+docx_extracted/

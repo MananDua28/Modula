@@ -398,28 +398,50 @@
   <!-- Gatekeeper & SmartScreen Tips -->
   <section class="section tips-section">
     <div class="container">
-      <div class="tips-box">
-        <div class="tips-header">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <div>
-            <h3>macOS Gatekeeper First-Time Launch Tip</h3>
-            <p>Because Modula is an open-source student tool built without an Apple Developer subscription ($99/year), macOS may show <em>"Modula is damaged and can't be opened"</em> on first launch. Run this one-time command in your Mac Terminal:</p>
+      <div class="tips-grid">
+        <!-- Windows Tip -->
+        <div class="tips-box">
+          <div class="tips-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="8" height="8"></rect>
+              <rect x="13" y="3" width="8" height="8"></rect>
+              <rect x="3" y="13" width="8" height="8"></rect>
+              <rect x="13" y="13" width="8" height="8"></rect>
+            </svg>
+            <div>
+              <h3>Windows Defender SmartScreen First Launch</h3>
+              <p>Because Modula is an independent open-source tool without a corporate certificate, Windows may show <em>"Windows protected your PC"</em>. Simply click <strong>More info</strong> &rarr; <strong>Run anyway</strong>.</p>
+            </div>
+          </div>
+          <div class="terminal-command-box" style="background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.25);">
+            <span style="font-size: 13px; font-weight: 600; color: #60a5fa; white-space: nowrap;">More info &rarr; Run anyway</span>
           </div>
         </div>
 
-        <div class="terminal-command-box">
-          <code>xattr -cr /Applications/Modula.app</code>
-          <button id="copyCommandBtn" class="btn btn-secondary btn-sm" title="Copy to clipboard">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        <!-- macOS Tip -->
+        <div class="tips-box">
+          <div class="tips-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
-            <span id="copyBtnText">Copy Command</span>
-          </button>
+            <div>
+              <h3>macOS Gatekeeper First-Time Launch Tip</h3>
+              <p>Because Modula is built without an Apple Developer subscription ($99/year), macOS may show <em>"Modula is damaged and can't be opened"</em> on first launch. Run this one-time command in Terminal:</p>
+            </div>
+          </div>
+
+          <div class="terminal-command-box">
+            <code>xattr -cr /Applications/Modula.app</code>
+            <button id="copyCommandBtn" class="btn btn-secondary btn-sm" title="Copy to clipboard">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span id="copyBtnText">Copy Command</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -467,18 +489,25 @@
             </svg>
           </div>
           <h3>Windows</h3>
-          <p class="dl-desc">Windows 11 and Windows 10 (64-bit)</p>
-          <div class="dl-meta">Standard Setup Installer (NSIS)</div>
+          <p class="dl-desc">Windows 11 and Windows 10 (64-bit x64)</p>
+          <div class="dl-meta">Choose Setup Installer or Standalone Portable</div>
           <a href="https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Setup-1.0.3.exe" class="btn btn-primary btn-block">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            <span>Download .EXE (97.7 MB)</span>
+            <span>Download Installer (97.7 MB)</span>
+          </a>
+          <a href="https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Portable-1.0.3.exe" class="btn btn-secondary btn-block" style="margin-top: 10px; font-size: 13px; padding: 10px 14px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Portable Edition (No Install — 97.4 MB)</span>
           </a>
         </div>
       </div>
+
     </div>
   </section>
 
