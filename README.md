@@ -31,9 +31,15 @@ Download the latest version of Modula for your operating system:
 
 | Operating System | Download Link | Format | Architecture |
 | :--- | :--- | :--- | :--- |
-| **macOS** | [📥 **Download Modula for macOS (.dmg)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-1.0.3-arm64.dmg) | `.dmg` Package | Apple Silicon & Intel |
-| **Windows** | [📥 **Download Modula for Windows (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Setup-1.0.3.exe) | `.exe` Setup Installer | 64-bit (Windows 10 / 11) |
+| **macOS** | [📥 **Download Modula for macOS (.dmg)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-1.0.3-arm64.dmg) | `.dmg` Package (114 MB) | Apple Silicon & Intel |
+| **Windows (Setup)** | [📥 **Download Modula Setup Installer (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Setup-1.0.3.exe) | `.exe` NSIS Installer (97.7 MB) | 64-bit x64 (Windows 10 / 11) |
+| **Windows (Portable)** | [📥 **Download Modula Portable (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Portable-1.0.3.exe) | `.exe` Standalone (97.4 MB) | 64-bit x64 (No install required) |
 | **All Releases** | [View GitHub Releases Archive](https://github.com/MananDua28/Modula/releases) | `.zip`, `.exe`, `.dmg` | All Platforms |
+
+> [!TIP]
+> **Windows Defender SmartScreen First Launch:**  
+> Because Modula is an independent open-source tool without a corporate certificate, Windows 10/11 may display *"Windows protected your PC"*.  
+> Simply click **More info** &rarr; **Run anyway**.
 
 > [!TIP]
 > **macOS Gatekeeper First-Time Launch:**  
