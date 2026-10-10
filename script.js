@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileMenu();
   detectOSAndAdaptCTA();
   initCopyCommand();
+  initSecurityTabs();
   initDownloadTracking();
 });
 
@@ -172,3 +173,39 @@ function initDownloadTracking() {
     }
   });
 }
+
+// Security & Installation Guide Tab Switching
+function initSecurityTabs() {
+  const tabWinBtn = document.getElementById('tabWinBtn');
+  const tabMacBtn = document.getElementById('tabMacBtn');
+  const winContent = document.getElementById('tabWindowsContent');
+  const macContent = document.getElementById('tabMacContent');
+
+  if (!tabWinBtn || !tabMacBtn || !winContent || !macContent) return;
+
+  function switchTab(platform) {
+    if (platform === 'windows') {
+      tabWinBtn.classList.add('active');
+      tabMacBtn.classList.remove('active');
+      winContent.classList.add('active');
+      macContent.classList.remove('active');
+    } else {
+      tabMacBtn.classList.add('active');
+      tabWinBtn.classList.remove('active');
+      macContent.classList.add('active');
+      winContent.classList.remove('active');
+    }
+  }
+
+  tabWinBtn.addEventListener('click', () => switchTab('windows'));
+  tabMacBtn.addEventListener('click', () => switchTab('macos'));
+
+  // Automatically select the active guide tab matching the visitor's OS
+  const ua = window.navigator.userAgent.toLowerCase();
+  if (ua.includes('win')) {
+    switchTab('windows');
+  } else {
+    switchTab('macos');
+  }
+}
+
