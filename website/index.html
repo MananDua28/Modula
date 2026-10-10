@@ -567,53 +567,22 @@
             </div>
           </div>
 
-          <!-- Step 2: Installer Hanging or Missing Shortcut Issue -->
-          <div class="guide-card">
+          <!-- Windows Editions Choice -->
+          <div class="guide-card" style="margin-top: 20px;">
             <div class="guide-card-header">
-              <span class="guide-step-tag warning-tag">Important Fix</span>
-              <h4>Installer Hanging, "Missing Shortcut", or Modula.exe Disappeared?</h4>
+              <span class="guide-step-tag">Format Options</span>
+              <h4>Choose Between Setup Installer or Standalone Portable</h4>
             </div>
-            <p class="guide-card-p">
-              If the installer reached the end and showed <em>"Missing Shortcut: Windows is searching for Modula.exe"</em>, got stuck in a loop, or the installed folder only contained <code>Uninstall Modula</code>:
-            </p>
-
             <div class="solution-grid">
-              <!-- Recommended: Portable Edition -->
-              <div class="solution-box recommended-box">
-                <div class="solution-badge">RECOMMENDED &middot; ZERO HASSLE</div>
-                <h5>Option A: Use the Windows Portable Edition</h5>
-                <p>
-                  Download and use the <strong>Standalone Portable Edition</strong>. It requires NO installation wizard, does not write to AppData, creates no broken shortcuts, and runs immediately.
-                </p>
-                <a href="https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Portable-1.0.3.exe" class="btn btn-primary btn-sm">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span>Download Portable (.exe)</span>
-                </a>
-              </div>
-
-              <!-- Option B: Restore in Defender -->
               <div class="solution-box">
-                <div class="solution-badge">IF USING SETUP INSTALLER</div>
-                <h5>Option B: Allow Quarantined Binary in Windows Security</h5>
-                <p>
-                  Windows Defender's real-time heuristic scanner occasionally quarantines newly extracted unsigned <code>.exe</code> files during installation before the shortcut can link to it.
-                </p>
-                <ol class="solution-steps-list">
-                  <li>Open <strong>Windows Security</strong> from the Start menu.</li>
-                  <li>Click <strong>Virus &amp; threat protection</strong> &rarr; <strong>Protection history</strong>.</li>
-                  <li>Click on the quarantined item, click <strong>Actions</strong>, and select <strong>Allow on device</strong> or <strong>Restore</strong>.</li>
-                </ol>
+                <div class="solution-badge">STANDARD INSTALLER</div>
+                <h5>Setup Installer (.exe)</h5>
+                <p>Standard Windows installer wizard that installs Modula on your PC and automatically creates Desktop &amp; Start Menu shortcuts.</p>
               </div>
-            </div>
-
-            <div class="guide-note-box">
-              <div class="note-img-wrap">
-                <img src="assets/windows-installer-issue.png" alt="Missing shortcut prompt on Windows" loading="lazy">
-              </div>
-              <div class="note-text">
-                <strong>Why this occurs:</strong> Windows Defender's real-time protection occasionally quarantines the newly unpacked binary into protection history while NSIS is completing the setup, making the desktop shortcut unable to find the executable. Both options above permanently resolve this.
+              <div class="solution-box recommended-box">
+                <div class="solution-badge">PORTABLE EDITION &middot; ZERO INSTALL</div>
+                <h5>Portable Standalone (.exe)</h5>
+                <p>No installer wizard required. Double-click to launch Modula instantly—can even be kept on a USB drive or in your Downloads folder.</p>
               </div>
             </div>
           </div>
