@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     onboardingAlert: document.getElementById('onboardingAlert'),
     settingStudentEmailDisplay: document.getElementById('settingStudentEmailDisplay'),
     settingVerifiedBadge: document.getElementById('settingVerifiedBadge'),
+    btnSignOut: document.getElementById('btnSignOut'),
 
     // Toast
     toast: document.getElementById('toast')
@@ -934,6 +935,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     elements.btnEmptySetup.addEventListener('click', openSettingsModal);
     elements.btnSaveSettings.addEventListener('click', saveSettings);
     elements.btnTestConnection.addEventListener('click', testConnection);
+
+    if (elements.btnSignOut) {
+      elements.btnSignOut.addEventListener('click', async () => {
+        const confirmed = confirm('Are you sure you want to sign out of your verified student account? You will need to re-verify your university email or Microsoft account to continue using Modula.');
+        if (!confirmed) return;
+
+        await window.modula.signOut();
+        closeSettingsModal();
+        await loadConfig();
+        showToast('Signed out of student account.');
+
+        // Show the onboarding modal in initial clean state
+        elements.onboardingStepOtp.classList.add('hidden');
+        elements.onboardingStepEmail.classList.remove('hidden');
+        elements.onboardingEmailInput.value = '';
+        elements.onboardingAlert.className = 'alert-box hidden';
+        elements.onboardingModal.classList.remove('hidden');
+      });
+    }
 
     // Toggle password visibility
     elements.btnToggleTokenVisibility.addEventListener('click', () => {

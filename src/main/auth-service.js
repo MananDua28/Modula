@@ -471,6 +471,20 @@ class AuthService {
     });
   }
 
+  async signOut() {
+    this.configStore.saveConfig({
+      isVerified: false,
+      studentEmail: null,
+      studentDomain: null,
+      verifiedAt: null,
+      userId: null,
+      sessionToken: null,
+      refreshToken: null,
+      authProvider: null
+    });
+    return { success: true };
+  }
+
   getAuthStatus() {
     const config = this.configStore.getConfig();
     return {

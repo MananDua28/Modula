@@ -214,6 +214,13 @@ ipcMain.handle('auth:signin-microsoft', async () => {
   return { success: false, error: 'Auth service not initialized.' };
 });
 
+ipcMain.handle('auth:sign-out', async () => {
+  if (authService) {
+    return await authService.signOut();
+  }
+  return { success: true };
+});
+
 ipcMain.handle('auth:get-status', async () => {
   if (authService) {
     return authService.getAuthStatus();
