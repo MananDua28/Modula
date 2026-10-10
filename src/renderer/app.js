@@ -94,8 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnVerifyOtpText: document.getElementById('btnVerifyOtpText'),
     btnResendOtp: document.getElementById('btnResendOtp'),
     btnChangeEmail: document.getElementById('btnChangeEmail'),
-    btnMicrosoftLogin: document.getElementById('btnMicrosoftLogin'),
-    btnMicrosoftLoginText: document.getElementById('btnMicrosoftLoginText'),
     onboardingAlert: document.getElementById('onboardingAlert'),
     settingStudentEmailDisplay: document.getElementById('settingStudentEmailDisplay'),
     settingVerifiedBadge: document.getElementById('settingVerifiedBadge'),
@@ -881,46 +879,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           elements.onboardingAlert.textContent = err.message || 'Error resending code.';
         }
       });
-    }
-
-    // Microsoft Outlook Login
-    async function handleMicrosoftLogin() {
-      elements.onboardingAlert.className = 'alert-box hidden';
-      elements.btnMicrosoftLogin.disabled = true;
-      const originalText = elements.btnMicrosoftLoginText ? elements.btnMicrosoftLoginText.textContent : 'Continue with Microsoft Outlook';
-      if (elements.btnMicrosoftLoginText) {
-        elements.btnMicrosoftLoginText.textContent = 'Connecting to Microsoft...';
-      }
-
-      try {
-        const result = await window.modula.signInWithMicrosoft();
-        if (result.success) {
-          elements.onboardingModal.classList.add('hidden');
-          showToast(`🎉 Student identity verified! Welcome, ${result.email}`);
-          await loadConfig();
-
-          if (!state.config.baseUrl || !state.config.token) {
-            openSettingsModal();
-          } else {
-            await connectAndLoadCourses();
-          }
-        } else {
-          elements.onboardingAlert.className = 'alert-box alert-error';
-          elements.onboardingAlert.textContent = result.error || 'Microsoft login was not completed.';
-        }
-      } catch (err) {
-        elements.onboardingAlert.className = 'alert-box alert-error';
-        elements.onboardingAlert.textContent = err.message || 'Error connecting to Microsoft.';
-      } finally {
-        elements.btnMicrosoftLogin.disabled = false;
-        if (elements.btnMicrosoftLoginText) {
-          elements.btnMicrosoftLoginText.textContent = originalText;
-        }
-      }
-    }
-
-    if (elements.btnMicrosoftLogin) {
-      elements.btnMicrosoftLogin.addEventListener('click', handleMicrosoftLogin);
     }
   }
 

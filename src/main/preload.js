@@ -79,7 +79,6 @@ contextBridge.exposeInMainWorld('modula', {
   // Student Verification & Auth
   sendStudentOtp: (email) => ipcRenderer.invoke('auth:send-otp', email),
   verifyStudentOtp: (email, token) => ipcRenderer.invoke('auth:verify-otp', { email, token }),
-  signInWithMicrosoft: () => ipcRenderer.invoke('auth:signin-microsoft'),
   signOut: () => ipcRenderer.invoke('auth:sign-out'),
   getAuthStatus: () => ipcRenderer.invoke('auth:get-status')
 });
