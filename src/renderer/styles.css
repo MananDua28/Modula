@@ -1318,6 +1318,55 @@ body.theme-light .moon-icon { display: block; }
   border: 1px solid var(--border-subtle);
 }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 14px 0;
+  color: var(--text-subtle);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.auth-divider span {
+  padding: 0 10px;
+}
+
+.btn-microsoft {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-bold);
+  color: var(--text-main);
+  font-weight: 600;
+  padding: 10px 16px;
+  font-size: 13.5px;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.btn-microsoft:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  transform: translateY(-1px);
+}
+
+.microsoft-icon {
+  flex-shrink: 0;
+}
+
 .otp-notice {
   background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);

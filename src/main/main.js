@@ -207,6 +207,13 @@ ipcMain.handle('auth:verify-otp', async (_event, { email, token }) => {
   return { success: false, error: 'Auth service not initialized.' };
 });
 
+ipcMain.handle('auth:signin-microsoft', async () => {
+  if (authService) {
+    return await authService.signInWithMicrosoft();
+  }
+  return { success: false, error: 'Auth service not initialized.' };
+});
+
 ipcMain.handle('auth:get-status', async () => {
   if (authService) {
     return authService.getAuthStatus();
