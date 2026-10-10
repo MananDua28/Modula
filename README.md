@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon.png" width="128" height="128" alt="Modula Logo" />
+  <img src="assets/icon.png" width="120" height="120" alt="Modula Logo" />
 </p>
 
 <h1 align="center">Modula</h1>
@@ -9,19 +9,42 @@
 </p>
 
 <p align="center">
-  <a href="#-direct-downloads"><img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-09090B?style=flat-square" alt="Platform"></a>
-  <a href="https://github.com/MananDua28/Modula/releases/latest"><img src="https://img.shields.io/badge/Latest-v1.0.3-E13F2B?style=flat-square" alt="Latest Release"></a>
-  <a href="#-privacy--security"><img src="https://img.shields.io/badge/Privacy-100%25%20Local-10B981?style=flat-square" alt="Privacy"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License"></a>
+  <a href="#downloads"><img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-000000?style=flat-square" alt="Platform"></a>
+  <a href="#downloads"><img src="https://img.shields.io/badge/Release-v1.0.0-E13F2B?style=flat-square" alt="Release"></a>
+  <a href="#license"><img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License"></a>
 </p>
 
 ---
 
 ## ⚡ Overview
 
-**Modula** is a distraction-free, high-performance desktop application designed for students and researchers. Connect your university Canvas LMS account with your personal access token to browse, download, and automatically synchronize course modules, lecture slides, assignments, and study materials offline.
+**Modula** is a distraction-free, high-performance desktop application designed for students. Connect your university Canvas LMS account with a single API token to browse, download, and automatically synchronize course modules, lecture slides, assignments, and study materials offline.
 
 Built with a strict Swiss-inspired aesthetic: pure obsidian black, clean white, and the signature Canvas scarlet red.
+
+---
+
+## ✨ Features
+
+- **Personal API Token Connection**: Seamlessly connects to any university Canvas instance (Birmingham, Oxford, Manchester, Canvas Free, or your custom domain).
+- **Module Explorer**: View all modules, pages, files, assignments, quizzes, and resources structured exactly as they appear in Canvas.
+- **Granular & Batch Downloads**:
+  - 📥 **One-Click Course Download**: Download all modules and files across the entire semester with one click.
+  - 📁 **Module Download**: Download an entire week's or topic's materials into a numbered, organized folder.
+  - 📄 **Single-File Download**: Download specific slides, past papers, or templates manually.
+- **Real-Time Auto-Sync & Delta Updates**:
+  - Background polling (configurable from 5 min to 1 hr).
+  - Detects when professors add new modules or upload updated lecture slides.
+  - Displays a vibrant **NEW** badge and sends native desktop notifications.
+  - Optional **"Auto-Download New Items"** switch to automatically save newly posted files to your computer.
+- **Smart Page & Media Parsing**:
+  - Canvas Pages are automatically converted into readable Markdown (`.md`) and standalone HTML.
+  - Embedded images and file links referenced inside pages are extracted and saved automatically.
+- **Minimalist Aesthetic & Themes**:
+  - Pure, distraction-free typography.
+  - Instant toggle between **Dark Mode** (system default) and **Light Mode**.
+- **Cross-Platform**:
+  - Native performance and look on **macOS** (DMG / Apple Silicon & Intel) and **Windows** (Installer & Portable EXE).
 
 ---
 
@@ -37,84 +60,104 @@ Download the latest version of Modula for your operating system:
 | **All Releases** | [View GitHub Releases Archive](https://github.com/MananDua28/Modula/releases) | `.zip`, `.exe`, `.dmg` | All Platforms |
 
 > [!TIP]
-> **Windows Defender SmartScreen First Launch:**  
-> Because Modula is an independent open-source tool without a corporate certificate, Windows 10/11 may display *"Windows protected your PC"*.  
-> Simply click **More info** &rarr; **Run anyway**.
+> **Windows Defender SmartScreen & Installation:**  
+> - **SmartScreen Bypass:** Click **More info** &rarr; **Run anyway**.  
+> - **Installer Loop or "Missing Shortcut"?** If Windows Defender's real-time heuristic scanner flags the unzipped `.exe` during setup, simply download and run the **Standalone Portable Edition (`Modula-Portable.exe`)**—no installer wizard or AppData permissions needed! Alternatively, click **Restore / Allow on device** in Windows Security &rarr; Protection history.  
+> - **100% Virus-Free:** Scanned clean on VirusTotal (0 / 72 security vendors detected 0 threats).
 
 > [!TIP]
 > **macOS Gatekeeper First-Time Launch:**  
-> Since Modula is an independent student project built without an Apple Developer certificate ($99/yr), macOS may display *"Modula is damaged and can't be opened"* on your first launch.  
-> To approve and run it in 3 seconds, simply open Terminal and run:
+> Since Modula is an independent student project built without an Apple Developer certificate ($99/yr), macOS may show *"Modula is damaged and can't be opened"* on your first launch.  
+> Run this one-time command in your Terminal:
 > ```bash
 > xattr -cr /Applications/Modula.app
 > ```
-> Or right-click `Modula.app` in Finder, hold the `Option` key on your keyboard, and click **Open**.
+> Or right-click `Modula.app` in Finder and select **Open**.
 
 ---
 
-## ✨ Key Features
+## 🔑 How to Get Your Canvas API Access Token
 
-- **🔄 Background Auto-Sync & Change Detection:**
-  - Automatically polls Canvas in the background (configurable from 5 min to 1 hr).
-  - Instantly alerts you with a vibrant **NEW** badge when instructors upload new lecture slides or create new modules.
-  - Optional **"Auto-Download New Items"** switch saves newly published materials directly to your disk.
-
-- **📁 Granular & Bulk Downloads:**
-  - **One-Click Course Download:** Download all modules, lecture slides, and notes for an entire semester with a single click.
-  - **Module Accordion:** Expand any module dropdown to preview item titles, file sizes, and due dates.
-  - **Selective Download:** Download individual PDFs, lab sheets, or assignment briefs on demand.
-
-- **📑 Offline Assignment Templates & Rubrics:**
-  - Automatically scans assignment descriptions for attached template files (e.g. Word documents, PDF briefs, LaTeX templates) and downloads them straight into your local assignment folders.
-
-- **🎨 Minimalist 3-Color Design & Instant Themes:**
-  - Distraction-free typography, instant toggle between **Dark Mode** (system default) and **Light Mode**.
-  - Built-in update checker alerts you whenever a new release is available.
-
----
-
-## 🔑 Quick Setup (How to Connect Your Canvas)
-
-1. Log in to your university Canvas web portal (e.g. `https://canvas.bham.ac.uk`).
-2. Click your **Profile Picture / Account** on the top-left sidebar $\rightarrow$ select **Settings**.
-3. Scroll down to the **Approved Integrations** section.
-4. Click **+ New Access Token**.
-5. Set the purpose as `Modula` and click **Generate Token**.
-6. Copy the generated token string.
-7. Open **Modula**, paste your institution URL and token in **Settings**, and click **Save & Connect**!
+1. Log in to your university Canvas account (e.g. `https://canvas.bham.ac.uk`).
+2. Click your **Account** icon (profile picture) in the top-left sidebar.
+3. Select **Settings**.
+4. Scroll down to the **Approved Integrations** section.
+5. Click **+ New Access Token**.
+6. Enter a name (e.g. `Modula`) and click **Generate Token**.
+7. Copy the generated token string and paste it into Modula's Settings modal.
 
 ---
 
 ## 📂 Local Directory Organization
 
-Modula organizes your downloaded course materials automatically:
+Files downloaded with Modula are structured cleanly by default:
 
 ```
 ~/Downloads/Modula/
 └── [Course Code] - [Course Name]/
     ├── 01_ABOUT YOUR MODULE/
-    │   ├── Welcome to Engineering Projects.pdf
-    │   └── Module Syllabus.pdf
+    │   ├── Welcome to the Module.md
+    │   └── Syllabus.pdf
     ├── 02_Week 1 - Introduction/
     │   ├── Lecture 1 - Slides.pdf
-    │   └── Lab 1 - Instructions.pdf
+    │   └── Reading Notes.docx
     └── Assignments/
-        ├── Preliminary Report/
-        │   ├── Brief.pdf
-        │   └── Report_Template.docx
-        └── Final Presentation/
+        ├── Preliminary Report.md
+        └── Ethical Review.docx
 ```
 
 ---
 
-## 🔒 Privacy & Security Guarantee
+## 🛠️ Development & Building from Source
 
-- **100% Client-Side:** Modula runs exclusively on your local computer.
-- **Direct Connection:** Your Canvas API token and university credentials communicate directly with your institution's official Canvas API endpoints.
-- **Zero Third-Party Servers:** Your tokens, passwords, and course files are never collected, logged, or transmitted to any external server.
+### Prerequisites
+- [Node.js](https://nodejs.org) (v18 or higher)
+- npm (v9 or higher)
+
+### Setup
+
+```bash
+# Clone repository
+git clone https://github.com/MananDua28/Canvas-Downloader.git
+cd Canvas-Downloader
+
+# Install dependencies
+npm install
+
+# Run application in development
+npm start
+```
+
+### Build Distribution Binaries
+
+```bash
+# Build for macOS (.dmg and .zip)
+npm run dist:mac
+
+# Build for Windows (.exe installer and portable)
+npm run dist:win
+
+# Build all platforms
+npm run dist:all
+```
+
+Binaries will be outputted to the `dist/` folder.
 
 ---
 
-<p align="center">
-  <sub>Modula · Designed for Students · Built with Precision</sub>
-</p>
+## 🎨 Design System
+
+| Element | Dark Mode (Default) | Light Mode |
+| :--- | :--- | :--- |
+| **App Background** | `#09090b` (Deep Obsidian) | `#ffffff` (Pure White) |
+| **Cards & Surfaces** | `#141418` | `#f8f8fa` |
+| **Borders** | `#24242a` | `#e4e4e9` |
+| **Accent & Highlight** | `#E13F2B` (Canvas Scarlet) | `#E13F2B` (Canvas Scarlet) |
+| **Text Primary** | `#f4f4f6` | `#09090b` |
+| **Text Muted** | `#8e8e99` | `#6b6b76` |
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
