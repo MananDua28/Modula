@@ -310,7 +310,7 @@ class AuthService {
         method: 'POST',
         headers: {
           'apikey': this.supabaseKey,
-          'Authorization': `Bearer ${config.sessionToken || this.supabaseKey}`,
+          'Authorization': `Bearer ${this.supabaseKey}`,
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
         },
