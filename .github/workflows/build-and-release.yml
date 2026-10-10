@@ -2,7 +2,6 @@ name: Build and Release Modula
 
 on:
   push:
-    branches: [ main ]
     tags:
       - 'v*'
   workflow_dispatch:
@@ -37,6 +36,7 @@ jobs:
           path: |
             dist/*.dmg
             dist/*.zip
+          retention-days: 1
 
   build-windows:
     runs-on: windows-latest
@@ -63,6 +63,7 @@ jobs:
           name: modula-windows
           path: |
             dist/*.exe
+          retention-days: 1
 
   release:
     needs: [build-macos, build-windows]
