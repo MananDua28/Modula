@@ -426,19 +426,16 @@
   </div>
 
   <!-- Feedback Modal -->
-  <div id="feedbackModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
-    <div class="modal-backdrop" id="feedbackBackdrop"></div>
-    <div class="modal-dialog feedback-dialog">
+  <div id="feedbackModal" class="modal-overlay hidden">
+    <div class="modal-card feedback-card">
       <div class="modal-header">
-        <div class="feedback-badge-wrap">
-          <span class="feedback-badge">MADE WITH CARE</span>
+        <div class="modal-title-group">
+          <div class="feedback-badge-tag">STUDENT FEEDBACK</div>
+          <h2>Built with ❤️ by Manan</h2>
+          <p>Hope Modula is saving you time! Your feedback directly shapes upcoming updates.</p>
         </div>
-        <h3 id="feedbackTitle" class="modal-title">Built with ❤️ by Manan</h3>
-        <p class="feedback-subtitle">
-          Hope Modula is saving you time! Your feedback and ideas will be considered directly for the next update:
-        </p>
-        <button id="feedbackCloseBtn" class="btn-icon modal-close-btn" type="button" aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button id="feedbackCloseBtn" class="icon-btn" title="Close" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -446,8 +443,8 @@
       </div>
 
       <div class="modal-body">
-        <div class="form-group" style="margin-bottom: 6px;">
-          <textarea id="feedbackTextInput" class="form-control feedback-textarea" rows="4" maxlength="500" placeholder="Type your thoughts, suggestions, or feature requests here..."></textarea>
+        <div class="setting-group" style="margin-bottom: 8px;">
+          <textarea id="feedbackTextInput" class="feedback-textarea" rows="4" maxlength="500" placeholder="Type your thoughts, suggestions, or feature requests here..."></textarea>
           <div class="feedback-meta-row">
             <span id="feedbackCharCount" class="feedback-char-count">0 / 500</span>
           </div>
@@ -455,10 +452,10 @@
         <div id="feedbackAlert" class="alert-box hidden"></div>
       </div>
 
-      <div class="modal-footer feedback-footer">
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
         <button id="feedbackLaterBtn" class="btn btn-secondary btn-sm" type="button">Maybe Later</button>
         <button id="feedbackSubmitBtn" class="btn btn-primary btn-sm" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
             <line x1="22" y1="2" x2="11" y2="13"></line>
             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
           </svg>

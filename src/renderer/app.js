@@ -965,8 +965,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       elements.feedbackCloseBtn.addEventListener('click', closeFeedbackModal);
     }
 
-    if (elements.feedbackBackdrop) {
-      elements.feedbackBackdrop.addEventListener('click', closeFeedbackModal);
+    if (elements.feedbackModal) {
+      elements.feedbackModal.addEventListener('click', (e) => {
+        if (e.target === elements.feedbackModal) {
+          closeFeedbackModal();
+        }
+      });
     }
 
     if (elements.feedbackLaterBtn) {
@@ -1034,6 +1038,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     elements.btnEmptySetup.addEventListener('click', openSettingsModal);
     elements.btnSaveSettings.addEventListener('click', saveSettings);
     elements.btnTestConnection.addEventListener('click', testConnection);
+    if (elements.settingsModal) {
+      elements.settingsModal.addEventListener('click', (e) => {
+        if (e.target === elements.settingsModal) closeSettingsModal();
+      });
+    }
 
     if (elements.btnSignOut) {
       elements.btnSignOut.addEventListener('click', async () => {
