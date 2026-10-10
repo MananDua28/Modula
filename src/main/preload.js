@@ -80,5 +80,10 @@ contextBridge.exposeInMainWorld('modula', {
   sendStudentOtp: (email) => ipcRenderer.invoke('auth:send-otp', email),
   verifyStudentOtp: (email, token) => ipcRenderer.invoke('auth:verify-otp', { email, token }),
   signOut: () => ipcRenderer.invoke('auth:sign-out'),
-  getAuthStatus: () => ipcRenderer.invoke('auth:get-status')
+  getAuthStatus: () => ipcRenderer.invoke('auth:get-status'),
+
+  // Student Feedback
+  submitFeedback: (message) => ipcRenderer.invoke('feedback:submit', message),
+  dismissFeedback: () => ipcRenderer.invoke('feedback:dismiss'),
+  getFeedbackStatus: () => ipcRenderer.invoke('feedback:get-status')
 });

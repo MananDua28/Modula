@@ -221,3 +221,26 @@ ipcMain.handle('auth:get-status', async () => {
   return { isVerified: false };
 });
 
+// Student Feedback
+ipcMain.handle('feedback:submit', async (_event, message) => {
+  if (authService) {
+    return await authService.submitFeedback(message);
+  }
+  return { success: false, error: 'Feedback service not initialized.' };
+});
+
+ipcMain.handle('feedback:dismiss', async () => {
+  if (authService) {
+    return authService.dismissFeedback();
+  }
+  return { success: true };
+});
+
+ipcMain.handle('feedback:get-status', async () => {
+  if (authService) {
+    return authService.getFeedbackStatus();
+  }
+  return { feedbackSubmitted: false, feedbackDismissed: false };
+});
+
+

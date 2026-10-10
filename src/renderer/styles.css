@@ -1401,3 +1401,78 @@ body.theme-light .moon-icon { display: block; }
   border-radius: 12px;
 }
 
+/* --- Student Feedback Modal --- */
+.feedback-dialog {
+  width: 480px;
+  max-width: 90vw;
+  border: 1px solid var(--border-bold);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+  animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feedback-badge-wrap {
+  margin-bottom: 8px;
+}
+
+.feedback-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-canvas-red);
+  background: var(--color-canvas-red-soft);
+  border: 1px solid rgba(225, 63, 43, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.feedback-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.feedback-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 96px;
+  max-height: 220px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feedback-textarea:focus {
+  outline: none;
+  border-color: var(--color-canvas-red);
+  box-shadow: 0 0 0 2px var(--color-canvas-red-soft);
+}
+
+.feedback-meta-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.feedback-char-count {
+  font-size: 11px;
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+}
+
+.feedback-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+

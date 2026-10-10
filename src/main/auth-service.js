@@ -288,6 +288,72 @@ class AuthService {
       verifiedAt: config.verifiedAt || null
     };
   }
+
+  async submitFeedback(rawMessage) {
+    if (!rawMessage || typeof rawMessage !== 'string' || !rawMessage.trim()) {
+      return { success: false, error: 'Feedback message cannot be empty.' };
+    }
+
+    const message = rawMessage.trim();
+    if (message.length > 2000) {
+      return { success: false, error: 'Feedback is too long (maximum 2000 characters).' };
+    }
+
+    const config = this.configStore.getConfig();
+    const studentEmail = config.studentEmail || 'anonymous';
+    const appVersion = app.isPackaged ? app.getVersion() : '1.0.3';
+    const platform = process.platform;
+    const deviceId = this.getDeviceId();
+
+    try {
+      const response = await fetch(`${this.supabaseUrl}/rest/v1/feedback`, {
+        method: 'POST',
+        headers: {
+          'apikey': this.supabaseKey,
+          'Authorization': `Bearer ${config.sessionToken || this.supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          student_email: studentEmail,
+          message: message,
+          app_version: appVersion,
+          platform: platform,
+          device_id: deviceId
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.warn('Feedback submission error from Supabase:', response.status, errText);
+        return {
+          success: false,
+          error: response.status === 404
+            ? 'Feedback table is being initialized. Please try again shortly.'
+            : 'Could not send feedback. Please check your connection and try again.'
+        };
+      }
+
+      this.configStore.saveConfig({ feedbackSubmitted: true });
+      return { success: true };
+    } catch (err) {
+      console.error('Network error submitting feedback:', err);
+      return { success: false, error: 'Network error submitting feedback. Please check your connection.' };
+    }
+  }
+
+  dismissFeedback() {
+    this.configStore.saveConfig({ feedbackDismissed: true });
+    return { success: true };
+  }
+
+  getFeedbackStatus() {
+    const config = this.configStore.getConfig();
+    return {
+      feedbackSubmitted: Boolean(config.feedbackSubmitted),
+      feedbackDismissed: Boolean(config.feedbackDismissed)
+    };
+  }
 }
 
 module.exports = AuthService;

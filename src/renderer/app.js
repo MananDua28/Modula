@@ -99,6 +99,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     settingVerifiedBadge: document.getElementById('settingVerifiedBadge'),
     btnSignOut: document.getElementById('btnSignOut'),
 
+    // Student Feedback
+    feedbackModal: document.getElementById('feedbackModal'),
+    feedbackBackdrop: document.getElementById('feedbackBackdrop'),
+    feedbackCloseBtn: document.getElementById('feedbackCloseBtn'),
+    feedbackLaterBtn: document.getElementById('feedbackLaterBtn'),
+    feedbackSubmitBtn: document.getElementById('feedbackSubmitBtn'),
+    feedbackSubmitText: document.getElementById('feedbackSubmitText'),
+    feedbackTextInput: document.getElementById('feedbackTextInput'),
+    feedbackCharCount: document.getElementById('feedbackCharCount'),
+    feedbackAlert: document.getElementById('feedbackAlert'),
+    btnOpenFeedbackModal: document.getElementById('btnOpenFeedbackModal'),
+
     // Toast
     toast: document.getElementById('toast')
   };
@@ -107,6 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function init() {
     setupEventListeners();
     setupOnboardingListeners();
+    setupFeedbackListeners();
     await loadConfig();
     await refreshDownloadHistory();
     const isAuthed = await checkAuthAndOnboard();
@@ -882,6 +895,134 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // Student Feedback Controller
+  let feedbackCheckTimeout = null;
+
+  function showFeedbackAlert(msg, type) {
+    if (!elements.feedbackAlert) return;
+    elements.feedbackAlert.className = `alert-box alert-${type}`;
+    elements.feedbackAlert.textContent = msg;
+    elements.feedbackAlert.classList.remove('hidden');
+  }
+
+  function openFeedbackModal() {
+    if (!elements.feedbackModal) return;
+    if (elements.feedbackTextInput) {
+      elements.feedbackTextInput.value = '';
+      elements.feedbackTextInput.disabled = false;
+    }
+    if (elements.feedbackCharCount) {
+      elements.feedbackCharCount.textContent = '0 / 500';
+    }
+    if (elements.feedbackAlert) {
+      elements.feedbackAlert.className = 'alert-box hidden';
+      elements.feedbackAlert.textContent = '';
+    }
+    if (elements.feedbackSubmitBtn) {
+      elements.feedbackSubmitBtn.disabled = false;
+    }
+    if (elements.feedbackSubmitText) {
+      elements.feedbackSubmitText.textContent = 'Send Feedback';
+    }
+    elements.feedbackModal.classList.remove('hidden');
+    setTimeout(() => {
+      if (elements.feedbackTextInput) elements.feedbackTextInput.focus();
+    }, 120);
+  }
+
+  function closeFeedbackModal() {
+    if (!elements.feedbackModal) return;
+    elements.feedbackModal.classList.add('hidden');
+  }
+
+  async function checkAndShowFeedbackModal() {
+    try {
+      const status = await window.modula.getFeedbackStatus();
+      if (status.feedbackSubmitted || status.feedbackDismissed) {
+        return;
+      }
+
+      if (feedbackCheckTimeout) clearTimeout(feedbackCheckTimeout);
+      feedbackCheckTimeout = setTimeout(() => {
+        openFeedbackModal();
+      }, 1500); // Trigger 1.5s after downloads complete so student enjoys the finished download first
+    } catch (err) {
+      console.warn('Error checking feedback status:', err);
+    }
+  }
+
+  function setupFeedbackListeners() {
+    if (!elements.feedbackModal) return;
+
+    if (elements.btnOpenFeedbackModal) {
+      elements.btnOpenFeedbackModal.addEventListener('click', () => {
+        closeSettingsModal();
+        openFeedbackModal();
+      });
+    }
+
+    if (elements.feedbackCloseBtn) {
+      elements.feedbackCloseBtn.addEventListener('click', closeFeedbackModal);
+    }
+
+    if (elements.feedbackBackdrop) {
+      elements.feedbackBackdrop.addEventListener('click', closeFeedbackModal);
+    }
+
+    if (elements.feedbackLaterBtn) {
+      elements.feedbackLaterBtn.addEventListener('click', async () => {
+        closeFeedbackModal();
+        try {
+          await window.modula.dismissFeedback();
+        } catch (e) {}
+      });
+    }
+
+    if (elements.feedbackTextInput && elements.feedbackCharCount) {
+      elements.feedbackTextInput.addEventListener('input', () => {
+        const len = elements.feedbackTextInput.value.length;
+        elements.feedbackCharCount.textContent = `${len} / 500`;
+      });
+    }
+
+    if (elements.feedbackSubmitBtn) {
+      elements.feedbackSubmitBtn.addEventListener('click', async () => {
+        const text = elements.feedbackTextInput.value.trim();
+        if (!text) {
+          showFeedbackAlert('Please enter your feedback before sending.', 'error');
+          elements.feedbackTextInput.focus();
+          return;
+        }
+
+        elements.feedbackSubmitBtn.disabled = true;
+        elements.feedbackSubmitText.textContent = 'Sending...';
+
+        try {
+          const res = await window.modula.submitFeedback(text);
+          if (res.success) {
+            showFeedbackAlert('✓ Thank you! Your feedback has been sent directly to Manan.', 'success');
+            elements.feedbackTextInput.disabled = true;
+            setTimeout(() => {
+              closeFeedbackModal();
+              elements.feedbackSubmitBtn.disabled = false;
+              elements.feedbackSubmitText.textContent = 'Send Feedback';
+              elements.feedbackTextInput.disabled = false;
+              showToast('Feedback sent! Thank you ❤️');
+            }, 1800);
+          } else {
+            showFeedbackAlert(res.error || 'Failed to send feedback. Please try again.', 'error');
+            elements.feedbackSubmitBtn.disabled = false;
+            elements.feedbackSubmitText.textContent = 'Send Feedback';
+          }
+        } catch (err) {
+          showFeedbackAlert('Network error sending feedback. Please try again.', 'error');
+          elements.feedbackSubmitBtn.disabled = false;
+          elements.feedbackSubmitText.textContent = 'Send Feedback';
+        }
+      });
+    }
+  }
+
   // Setup Event Listeners
   function setupEventListeners() {
     // Theme toggle
@@ -1028,6 +1169,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       updateDownloadsDrawer();
       updateItemRow(item.id);
       showToast(`Downloaded: ${item.title}`);
+
+      // When the download batch finishes and active queue is empty, trigger the feedback modal
+      if (state.activeDownloads.size === 0) {
+        checkAndShowFeedbackModal();
+      }
     });
 
     window.modula.onDownloadError(({ queueId, item, error }) => {
