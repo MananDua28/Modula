@@ -31,9 +31,649 @@ class DownloadManager {
       .trim();
   }
 
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  escapeXml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  parseVideoEmbeds(rawHtml, baseUrl, courseId, pageData) {
+    if (!rawHtml || typeof rawHtml !== 'string') return [];
+    const videos = [];
+    const seen = new Set();
+
+    // 1. Panopto LTI tool or Canvas external_tools/retrieve
+    const panoptoRegex = /(?:src|href)=["']([^"']*(?:external_tools\/retrieve|panopto)[^"']*)["']/gi;
+    let match;
+    while ((match = panoptoRegex.exec(rawHtml)) !== null) {
+      const rawUrl = match[1].replace(/&amp;/g, '&');
+      const deliveryMatch = rawUrl.match(/custom_context_delivery(?:%3D|=)([a-f0-9\-]{36})/i)
+        || rawUrl.match(/[?&]id=([a-f0-9\-]{36})/i);
+
+      if (deliveryMatch) {
+        const deliveryId = deliveryMatch[1];
+        const hostMatch = rawUrl.match(/https?%3A%2F%2F([a-zA-Z0-9.-]+\.panopto\.(?:com|eu|net|org))/i)
+          || rawUrl.match(/https?:\/\/([a-zA-Z0-9.-]+\.panopto\.(?:com|eu|net|org))/i);
+        const host = hostMatch ? hostMatch[1] : 'bham.cloud.panopto.eu';
+        const viewerUrl = `https://${host}/Panopto/Pages/Viewer.aspx?id=${deliveryId}`;
+        const embedUrl = `https://${host}/Panopto/Pages/Embed.aspx?id=${deliveryId}&autoplay=false&offerviewer=true&showtitle=true&showbrand=false&captions=true&interactivity=all`;
+
+        let canvasLaunchUrl = rawUrl;
+        if (!canvasLaunchUrl.startsWith('http')) {
+          const cleanBase = (baseUrl || '').replace(/\/+$/, '');
+          canvasLaunchUrl = cleanBase + (rawUrl.startsWith('/') ? '' : '/') + rawUrl;
+        }
+
+        if (!seen.has(viewerUrl)) {
+          seen.add(viewerUrl);
+          videos.push({
+            type: 'panopto',
+            platformName: 'Panopto Lecture Recording',
+            deliveryId,
+            host,
+            viewerUrl,
+            embedUrl,
+            canvasLaunchUrl,
+            rawUrl
+          });
+        }
+      }
+    }
+
+    // 2. Direct Panopto Embed/Viewer URLs in iframes or links
+    const panoptoDirectRegex = /(?:src|href)=["'](https?:\/\/([a-zA-Z0-9.-]+\.panopto\.(?:com|eu|net|org))\/Panopto\/Pages\/(?:Embed|Viewer)\.aspx\?[^"']*)["']/gi;
+    while ((match = panoptoDirectRegex.exec(rawHtml)) !== null) {
+      const fullUrl = match[1].replace(/&amp;/g, '&');
+      const host = match[2];
+      const idMatch = fullUrl.match(/[?&]id=([a-f0-9\-]{36})/i);
+      if (idMatch) {
+        const deliveryId = idMatch[1];
+        const viewerUrl = `https://${host}/Panopto/Pages/Viewer.aspx?id=${deliveryId}`;
+        const embedUrl = `https://${host}/Panopto/Pages/Embed.aspx?id=${deliveryId}&autoplay=false&offerviewer=true&showtitle=true&showbrand=false&captions=true&interactivity=all`;
+        if (!seen.has(viewerUrl)) {
+          seen.add(viewerUrl);
+          videos.push({
+            type: 'panopto',
+            platformName: 'Panopto Lecture Recording',
+            deliveryId,
+            host,
+            viewerUrl,
+            embedUrl,
+            canvasLaunchUrl: fullUrl,
+            rawUrl: fullUrl
+          });
+        }
+      }
+    }
+
+    // 3. YouTube Embeds
+    const ytRegex = /(?:src|href)=["'](https?:\/\/(?:www\.)?youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=)([a-zA-Z0-9_\-]+)[^"']*)["']/gi;
+    while ((match = ytRegex.exec(rawHtml)) !== null) {
+      const videoId = match[2];
+      const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+      const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`;
+      if (!seen.has(watchUrl)) {
+        seen.add(watchUrl);
+        videos.push({
+          type: 'youtube',
+          platformName: 'YouTube Video',
+          videoId,
+          viewerUrl: watchUrl,
+          embedUrl,
+          canvasLaunchUrl: watchUrl,
+          rawUrl: match[1]
+        });
+      }
+    }
+
+    // 4. Vimeo Embeds
+    const vimeoRegex = /(?:src|href)=["'](https?:\/\/player\.vimeo\.com\/video\/(\d+)[^"']*)["']/gi;
+    while ((match = vimeoRegex.exec(rawHtml)) !== null) {
+      const videoId = match[2];
+      const watchUrl = `https://vimeo.com/${videoId}`;
+      const embedUrl = `https://player.vimeo.com/video/${videoId}`;
+      if (!seen.has(watchUrl)) {
+        seen.add(watchUrl);
+        videos.push({
+          type: 'vimeo',
+          platformName: 'Vimeo Video',
+          videoId,
+          viewerUrl: watchUrl,
+          embedUrl,
+          canvasLaunchUrl: watchUrl,
+          rawUrl: match[1]
+        });
+      }
+    }
+
+    return videos;
+  }
+
+  resolveVideoFromUrl(rawUrl, baseUrl, courseId, item) {
+    if (!rawUrl || typeof rawUrl !== 'string') return null;
+    const url = rawUrl.replace(/&amp;/g, '&');
+
+    // Panopto delivery ID
+    const deliveryMatch = url.match(/custom_context_delivery(?:%3D|=)([a-f0-9\-]{36})/i)
+      || url.match(/[?&]id=([a-f0-9\-]{36})/i);
+
+    if (deliveryMatch) {
+      const deliveryId = deliveryMatch[1];
+      const hostMatch = url.match(/https?%3A%2F%2F([a-zA-Z0-9.-]+\.panopto\.(?:com|eu|net|org))/i)
+        || url.match(/https?:\/\/([a-zA-Z0-9.-]+\.panopto\.(?:com|eu|net|org))/i);
+      const host = hostMatch ? hostMatch[1] : 'bham.cloud.panopto.eu';
+      return {
+        type: 'panopto',
+        platformName: 'Panopto Lecture Recording',
+        deliveryId,
+        host,
+        viewerUrl: `https://${host}/Panopto/Pages/Viewer.aspx?id=${deliveryId}`,
+        embedUrl: `https://${host}/Panopto/Pages/Embed.aspx?id=${deliveryId}&autoplay=false&offerviewer=true&showtitle=true&showbrand=false&captions=true&interactivity=all`,
+        canvasLaunchUrl: url
+      };
+    }
+
+    // YouTube
+    const ytMatch = url.match(/(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([a-zA-Z0-9_\-]+)/i);
+    if (ytMatch) {
+      const videoId = ytMatch[1];
+      return {
+        type: 'youtube',
+        platformName: 'YouTube Video',
+        videoId,
+        viewerUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}`,
+        canvasLaunchUrl: url
+      };
+    }
+
+    // Vimeo
+    const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+    if (vimeoMatch) {
+      const videoId = vimeoMatch[1];
+      return {
+        type: 'vimeo',
+        platformName: 'Vimeo Video',
+        videoId,
+        viewerUrl: `https://vimeo.com/${videoId}`,
+        embedUrl: `https://player.vimeo.com/video/${videoId}`,
+        canvasLaunchUrl: url
+      };
+    }
+
+    return null;
+  }
+
+  cleanHtmlBody(body, videos = []) {
+    if (!body || typeof body !== 'string') return '';
+    let cleaned = body;
+
+    // Remove any external mobile app or tracker scripts injected by Canvas
+    cleaned = cleaned.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    cleaned = cleaned.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+
+    // For any detected video, remove the broken Canvas external_tools/retrieve iframe
+    // so the student does not see the dead grey iframe box
+    for (const v of videos) {
+      if (v.rawUrl) {
+        const escapedRaw = v.rawUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const iframeRegex = new RegExp(`<iframe[^>]*src=["'][^"']*${escapedRaw}[^"']*["'][^>]*>\\s*<\\/iframe>`, 'gi');
+        cleaned = cleaned.replace(iframeRegex, '');
+      }
+    }
+    // Also remove generic external_tools/retrieve iframes
+    cleaned = cleaned.replace(/<iframe[^>]*src=["'][^"']*external_tools\/retrieve[^"']*["'][^>]*>\s*<\/iframe>/gi, '');
+
+    return cleaned.trim();
+  }
+
+  buildPageHtml(pageData, title, body, videos) {
+    const pageTitle = pageData.title || title;
+    const canvasUrl = pageData.html_url || '';
+    const cleanedBody = this.cleanHtmlBody(body, videos);
+
+    let videoCardsHtml = '';
+    if (videos && videos.length > 0) {
+      videoCardsHtml = videos.map(v => {
+        const playBtnText = v.type === 'panopto' ? 'Watch on Panopto' : 'Watch Video';
+        return `
+    <div class="modula-video-card">
+      <div class="modula-video-header">
+        <div class="modula-video-tag">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          ${this.escapeHtml(v.platformName)}
+        </div>
+        <h2 class="modula-video-title">${this.escapeHtml(pageTitle)}</h2>
+        <span class="modula-video-subtitle">${v.type === 'panopto' ? 'University Lecture Capture' : 'Embedded Stream'}</span>
+      </div>
+
+      <div class="modula-video-body">
+        ${v.embedUrl ? `
+        <div class="modula-video-embed-wrap">
+          <iframe src="${this.escapeHtml(v.embedUrl)}" allowfullscreen allow="autoplay; fullscreen; encrypted-media"></iframe>
+        </div>` : ''}
+
+        <div class="modula-video-actions">
+          <a href="${this.escapeHtml(v.viewerUrl)}" target="_blank" rel="noopener noreferrer" class="modula-btn-primary">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            ${playBtnText}
+          </a>
+          ${canvasUrl ? `
+          <a href="${this.escapeHtml(canvasUrl)}" target="_blank" rel="noopener noreferrer" class="modula-btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            Open in Canvas
+          </a>` : ''}
+        </div>
+
+        <p class="modula-video-note">
+          🔒 <strong>University SSO Protected:</strong> Lecture recordings are hosted securely on your institution's video portal. If playback does not start in the player above due to browser cookie isolation, click <strong>${playBtnText}</strong> to stream directly in your browser with full player controls, speed adjustments, and transcripts.
+        </p>
+      </div>
+    </div>`;
+      }).join('\n');
+    }
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${this.escapeHtml(pageTitle)}</title>
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --card-bg: #161619;
+      --card-border: #28282c;
+      --text: #f4f4f5;
+      --text-muted: #9da0a8;
+      --accent: #E13F2B;
+      --accent-hover: #c93422;
+      --accent-soft: rgba(225, 63, 43, 0.12);
+      --btn-secondary-bg: #222226;
+      --btn-secondary-hover: #2f2f35;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8fafc;
+        --card-bg: #ffffff;
+        --card-border: #e2e8f0;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --accent: #E13F2B;
+        --accent-hover: #c93422;
+        --accent-soft: rgba(225, 63, 43, 0.08);
+        --btn-secondary-bg: #f1f5f9;
+        --btn-secondary-hover: #e2e8f0;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 880px;
+      margin: 40px auto;
+      padding: 0 24px 60px;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .page-header {
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .canvas-link-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .canvas-link-badge:hover { text-decoration: underline; }
+    
+    /* Video Card */
+    .modula-video-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 20px 0 28px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+    .modula-video-header {
+      padding: 16px 20px;
+      background: var(--accent-soft);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .modula-video-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .modula-video-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .modula-video-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .modula-video-body {
+      padding: 20px;
+    }
+    .modula-video-embed-wrap {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #000;
+      margin-bottom: 16px;
+      border: 1px solid var(--card-border);
+    }
+    .modula-video-embed-wrap iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .modula-video-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .modula-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--accent);
+      color: #ffffff !important;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 7px;
+      text-decoration: none;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    .modula-btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    .modula-btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--btn-secondary-bg);
+      color: var(--text) !important;
+      border: 1px solid var(--card-border);
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 7px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .modula-btn-secondary:hover {
+      background: var(--btn-secondary-hover);
+    }
+    .modula-video-note {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+    .page-content {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--text);
+    }
+    .page-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 12px 0; }
+    .page-content pre { background: var(--card-bg); border: 1px solid var(--card-border); padding: 14px; border-radius: 8px; overflow-x: auto; margin: 12px 0; font-size: 13px; }
+    .page-content a { color: var(--accent); }
+    .page-content table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    .page-content th, .page-content td { padding: 9px 12px; border: 1px solid var(--card-border); text-align: left; }
+    .page-content th { background: var(--btn-secondary-bg); }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>${this.escapeHtml(pageTitle)}</h1>
+    ${canvasUrl ? `<a class="canvas-link-badge" href="${this.escapeHtml(canvasUrl)}" target="_blank" rel="noopener noreferrer">↗ Open Page in Canvas</a>` : ''}
+  </div>
+
+  ${videoCardsHtml}
+
+  <div class="page-content">
+    ${cleanedBody}
+  </div>
+</body>
+</html>`;
+  }
+
+  buildPageMarkdown(pageData, title, body, videos) {
+    const pageTitle = pageData.title || title;
+    const canvasUrl = pageData.html_url || '';
+    const cleanedBody = this.cleanHtmlBody(body, videos);
+    const bodyMd = this.htmlToMarkdown(cleanedBody);
+
+    const lines = [
+      `# ${pageTitle}`,
+      ''
+    ];
+
+    if (canvasUrl) {
+      lines.push(`- **Canvas Page:** [Open in Canvas](${canvasUrl})`);
+      lines.push('');
+    }
+
+    if (videos && videos.length > 0) {
+      for (const v of videos) {
+        lines.push('---');
+        lines.push('');
+        lines.push(`### 🎥 ${v.platformName}: ${pageTitle}`);
+        lines.push(`- 🔗 **[▶ Watch Recording on Panopto](${v.viewerUrl})**`);
+        if (canvasUrl) {
+          lines.push(`- 🔗 **[Open in Canvas Page](${canvasUrl})**`);
+        }
+        lines.push('');
+        lines.push(`> *Note: University lecture recordings require Single Sign-On (SSO). The link above opens directly in your browser with full player controls, speed adjustments, and transcripts.*`);
+        lines.push('');
+        lines.push('---');
+        lines.push('');
+      }
+    }
+
+    if (bodyMd) {
+      lines.push('## Page Content');
+      lines.push('');
+      lines.push(bodyMd);
+      lines.push('');
+    }
+
+    return lines.join('\n').trim();
+  }
+
+  buildLinkHtml(title, targetUrl, item, videoInfo) {
+    const isVideo = Boolean(videoInfo);
+    const platformName = videoInfo ? videoInfo.platformName : (item.type === 'ExternalTool' ? 'Canvas External Tool' : 'External Web Resource');
+    const btnText = isVideo ? 'Watch Recording' : 'Open Resource';
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${this.escapeHtml(title)}</title>
+  <meta http-equiv="refresh" content="1; url=${this.escapeHtml(targetUrl)}">
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --card-bg: #161619;
+      --card-border: #28282c;
+      --text: #f4f4f5;
+      --text-muted: #9da0a8;
+      --accent: #E13F2B;
+      --accent-hover: #c93422;
+      --btn-secondary-bg: #222226;
+      --btn-secondary-hover: #2f2f35;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8fafc;
+        --card-bg: #ffffff;
+        --card-border: #e2e8f0;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --accent: #E13F2B;
+        --accent-hover: #c93422;
+        --btn-secondary-bg: #f1f5f9;
+        --btn-secondary-hover: #e2e8f0;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+    .launch-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      max-width: 520px;
+      width: 100%;
+      padding: 32px 28px;
+      text-align: center;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(225, 63, 43, 0.1);
+      padding: 4px 10px;
+      border-radius: 5px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-launch {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #fff !important;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .btn-launch:hover { background: var(--accent-hover); }
+    .auto-note {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+  </style>
+  <script>
+    setTimeout(function() {
+      window.location.href = ${JSON.stringify(targetUrl)};
+    }, 1200);
+  </script>
+</head>
+<body>
+  <div class="launch-card">
+    <div class="badge">${this.escapeHtml(platformName)}</div>
+    <h1>${this.escapeHtml(title)}</h1>
+    <p>Opening link in your default browser where your student account is signed in.</p>
+    <div class="actions">
+      <a href="${this.escapeHtml(targetUrl)}" class="btn-launch">${btnText}</a>
+    </div>
+    <div class="auto-note">Redirecting automatically in 1 second...</div>
+  </div>
+</body>
+</html>`;
+  }
+
+  buildLinkMarkdown(title, targetUrl, item, videoInfo) {
+    const isVideo = Boolean(videoInfo);
+    const platformName = videoInfo ? videoInfo.platformName : (item.type === 'ExternalTool' ? 'Canvas External Tool' : 'External Web Resource');
+
+    return `# ${title}
+
+- **Resource Type:** ${platformName}
+- 🔗 **[▶ ${isVideo ? 'Watch Lecture Recording' : 'Open Resource Link'}](${targetUrl})**
+${item.htmlUrl ? `- 🔗 **[View on Canvas](${item.htmlUrl})**` : ''}
+
+> *Note: This resource is hosted online. The link above opens directly in your browser with your active university session.*
+`;
+  }
+
   htmlToMarkdown(html) {
     if (!html) return '';
     let md = html;
+
+    // Strip scripts and styles before conversion
+    md = md.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    md = md.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
     
     // Replace headings
     md = md.replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '\n\n# $1\n\n');
@@ -222,32 +862,41 @@ class DownloadManager {
         const title = this.sanitize(pageData.title || item.title || 'page');
         const body = pageData.body || '';
 
-        // Save as Markdown
+        // Detect videos (Panopto, YouTube, Vimeo, Canvas Studio)
+        const videos = this.parseVideoEmbeds(body, baseUrl, course.id, pageData);
+
+        // 1. Save as HTML with clean video launch card
+        const htmlPath = path.join(targetDir, `${title}.html`);
+        const fullHtml = this.buildPageHtml(pageData, title, body, videos);
+        fs.writeFileSync(htmlPath, fullHtml, 'utf8');
+
+        // 2. Save as Markdown with rich video links
         const mdPath = path.join(targetDir, `${title}.md`);
-        const mdContent = `# ${pageData.title || title}\n\nCanvas URL: ${pageData.html_url || ''}\n\n${this.htmlToMarkdown(body)}`;
+        const mdContent = this.buildPageMarkdown(pageData, title, body, videos);
         fs.writeFileSync(mdPath, mdContent, 'utf8');
 
-        // Save as HTML
-        const htmlPath = path.join(targetDir, `${title}.html`);
-        const fullHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${pageData.title || title}</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; max-width: 860px; margin: 40px auto; padding: 0 20px; color: #111; }
-    img { max-width: 100%; height: auto; border-radius: 6px; }
-    pre { background: #f4f4f5; padding: 16px; border-radius: 6px; overflow-x: auto; }
-    a { color: #E13F2B; }
-  </style>
-</head>
-<body>
-  <h1>${pageData.title || title}</h1>
-  <hr/>
-  ${body}
-</body>
-</html>`;
-        fs.writeFileSync(htmlPath, fullHtml, 'utf8');
+        // 3. If videos exist, also save native desktop web shortcuts for 1-click browser launch
+        if (videos.length > 0) {
+          const primaryVideo = videos[0];
+          try {
+            const weblocPath = path.join(targetDir, `[Watch] ${title}.webloc`);
+            const weblocContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>URL</key>
+  <string>${this.escapeXml(primaryVideo.viewerUrl)}</string>
+</dict>
+</plist>`;
+            fs.writeFileSync(weblocPath, weblocContent, 'utf8');
+
+            const urlPath = path.join(targetDir, `[Watch] ${title}.url`);
+            const urlContent = `[InternetShortcut]\nURL=${primaryVideo.viewerUrl}\n`;
+            fs.writeFileSync(urlPath, urlContent, 'utf8');
+          } catch (e) {
+            console.warn('Could not write desktop shortcut:', e.message);
+          }
+        }
 
         // Check for embedded files inside the page body
         const embeddedMatches = [...body.matchAll(/\/courses\/\d+\/files\/(\d+)/g)];
@@ -266,9 +915,10 @@ class DownloadManager {
           }
         }
 
+        const primaryPagePath = (videos && videos.length > 0) ? htmlPath : mdPath;
         this.configStore.recordDownload(item.id, {
-          localPath: mdPath,
-          size: Buffer.byteLength(mdContent),
+          localPath: primaryPagePath,
+          size: Buffer.byteLength(fullHtml) + Buffer.byteLength(mdContent),
           title: item.title,
           courseId: course.id,
           moduleId: module.id
@@ -277,7 +927,7 @@ class DownloadManager {
         this.notifyRenderer('download:completed', {
           queueId,
           item,
-          localPath: mdPath
+          localPath: primaryPagePath
         });
 
       } else if (item.type === 'Assignment') {
@@ -461,15 +1111,43 @@ class DownloadManager {
         });
 
       } else if (item.type === 'ExternalUrl' || item.type === 'ExternalTool') {
-        const url = item.externalUrl || item.url || '';
+        const rawUrl = item.externalUrl || item.url || '';
         const title = this.sanitize(item.title || 'link');
-        const linkPath = path.join(targetDir, `${title}.url`);
-        const content = `[InternetShortcut]\nURL=${url}\n`;
-        fs.writeFileSync(linkPath, content, 'utf8');
 
+        const videoInfo = this.resolveVideoFromUrl(rawUrl, baseUrl, course.id, item);
+        const targetUrl = videoInfo ? videoInfo.viewerUrl : rawUrl;
+
+        // 1. macOS native shortcut (.webloc)
+        const weblocPath = path.join(targetDir, `${title}.webloc`);
+        const weblocContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>URL</key>
+  <string>${this.escapeXml(targetUrl)}</string>
+</dict>
+</plist>`;
+        fs.writeFileSync(weblocPath, weblocContent, 'utf8');
+
+        // 2. Windows shortcut (.url)
+        const urlPath = path.join(targetDir, `${title}.url`);
+        const urlContent = `[InternetShortcut]\nURL=${targetUrl}\n`;
+        fs.writeFileSync(urlPath, urlContent, 'utf8');
+
+        // 3. HTML Launch & Redirect Page (.html)
+        const htmlPath = path.join(targetDir, `${title}.html`);
+        const htmlContent = this.buildLinkHtml(title, targetUrl, item, videoInfo);
+        fs.writeFileSync(htmlPath, htmlContent, 'utf8');
+
+        // 4. Markdown Note (.md)
+        const mdPath = path.join(targetDir, `${title}.md`);
+        const mdContent = this.buildLinkMarkdown(title, targetUrl, item, videoInfo);
+        fs.writeFileSync(mdPath, mdContent, 'utf8');
+
+        const primaryPath = process.platform === 'darwin' ? weblocPath : urlPath;
         this.configStore.recordDownload(item.id, {
-          localPath: linkPath,
-          size: Buffer.byteLength(content),
+          localPath: primaryPath,
+          size: Buffer.byteLength(urlContent) + Buffer.byteLength(htmlContent),
           title: item.title,
           courseId: course.id,
           moduleId: module.id
@@ -478,7 +1156,7 @@ class DownloadManager {
         this.notifyRenderer('download:completed', {
           queueId,
           item,
-          localPath: linkPath
+          localPath: primaryPath
         });
       }
     } catch (err) {

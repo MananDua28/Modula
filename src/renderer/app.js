@@ -522,14 +522,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (downloadedRecord && downloadedRecord.localPath) {
+      const isVideo = /panopto|lecture|recording|video|webinar|zoom|recap/i.test(item.title || '');
+      const openLabel = isVideo ? 'Watch' : (item.type === 'ExternalTool' || item.type === 'ExternalUrl' ? 'Open Link' : 'Open');
       return `
-        <button class="btn btn-ghost btn-sm btn-open-file" title="Open file">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
+        <button class="btn btn-ghost btn-sm btn-open-file" title="${isVideo ? 'Watch recording' : 'Open file'}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="${isVideo ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+            ${isVideo
+              ? '<polygon points="5 3 19 12 5 21 5 3"></polygon>'
+              : '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line>'
+            }
           </svg>
-          <span>Open</span>
+          <span>${openLabel}</span>
         </button>
         <button class="icon-btn-sm btn-show-folder" title="Show in Finder / File Explorer">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1274,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getItemTypeIcon(type, title) {
     const ext = title ? title.split('.').pop().toLowerCase() : '';
+    const isVideo = /panopto|lecture|recording|video|webinar|zoom|recap/i.test(title || '');
 
     if (type === 'File') {
       if (ext === 'pdf') {
@@ -1288,10 +1292,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (['pptx', 'ppt'].includes(ext)) {
         return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`;
       }
+      if (['mp4', 'mkv', 'mov', 'webm'].includes(ext) || isVideo) {
+        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`;
+      }
       return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`;
     }
 
     if (type === 'Page') {
+      if (isVideo) {
+        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`;
+      }
       return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`;
     }
 
@@ -1301,6 +1311,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (type === 'Quiz') {
       return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+    }
+
+    if (type === 'ExternalTool' || type === 'ExternalUrl') {
+      if (isVideo) {
+        return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>`;
+      }
+      return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
     }
 
     return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
