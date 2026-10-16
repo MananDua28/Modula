@@ -235,7 +235,8 @@ class DownloadManager {
         cleaned = cleaned.replace(iframeRegex, '');
       }
     }
-    // Also remove generic external_tools/retrieve iframes
+    // Also remove generic external_tools/retrieve and Panopto iframes so unauthenticated error boxes never display
+    cleaned = cleaned.replace(/<iframe[^>]*src=["'][^"']*panopto\.[^"']*["'][^>]*>\s*<\/iframe>/gi, '');
     cleaned = cleaned.replace(/<iframe[^>]*src=["'][^"']*external_tools\/retrieve[^"']*["'][^>]*>\s*<\/iframe>/gi, '');
 
     return cleaned.trim();
@@ -249,7 +250,10 @@ class DownloadManager {
     let videoCardsHtml = '';
     if (videos && videos.length > 0) {
       videoCardsHtml = videos.map(v => {
-        const playBtnText = v.type === 'panopto' ? 'Watch on Panopto' : 'Watch Video';
+        const isPanopto = v.type === 'panopto';
+        const primaryUrl = isPanopto ? (canvasUrl || v.canvasLaunchUrl || v.viewerUrl) : (v.viewerUrl || canvasUrl);
+        const playBtnText = isPanopto ? 'Play Lecture Recording' : 'Watch Video';
+
         return `
     <div class="modula-video-card">
       <div class="modula-video-header">
@@ -258,21 +262,39 @@ class DownloadManager {
           ${this.escapeHtml(v.platformName)}
         </div>
         <h2 class="modula-video-title">${this.escapeHtml(pageTitle)}</h2>
-        <span class="modula-video-subtitle">${v.type === 'panopto' ? 'University Lecture Capture' : 'Embedded Stream'}</span>
+        <span class="modula-video-subtitle">${isPanopto ? 'University Lecture Capture • Canvas SSO' : 'Embedded Video Stream'}</span>
       </div>
 
       <div class="modula-video-body">
-        ${v.embedUrl ? `
+        ${isPanopto ? `
+        <a href="${this.escapeHtml(primaryUrl)}" target="_blank" rel="noopener noreferrer" class="modula-video-screen-banner" title="Click anywhere to play recording in browser">
+          <div class="modula-video-screen-backdrop"></div>
+          <div class="modula-video-screen-content">
+            <div class="modula-video-play-btn" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg>
+            </div>
+            <div class="modula-video-screen-heading">${this.escapeHtml(pageTitle)}</div>
+            <div class="modula-video-screen-pill">
+              <span class="pulse-dot"></span> Authenticated Canvas Stream
+            </div>
+            <div class="modula-video-screen-subtext">Click to stream directly with Single Sign-On (Canvas LTI)</div>
+          </div>
+        </a>` : (v.embedUrl ? `
         <div class="modula-video-embed-wrap">
           <iframe src="${this.escapeHtml(v.embedUrl)}" allowfullscreen allow="autoplay; fullscreen; encrypted-media"></iframe>
-        </div>` : ''}
+        </div>` : '')}
 
         <div class="modula-video-actions">
-          <a href="${this.escapeHtml(v.viewerUrl)}" target="_blank" rel="noopener noreferrer" class="modula-btn-primary">
+          <a href="${this.escapeHtml(primaryUrl)}" target="_blank" rel="noopener noreferrer" class="modula-btn-primary">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             ${playBtnText}
           </a>
-          ${canvasUrl ? `
+          ${(isPanopto && v.viewerUrl && v.viewerUrl !== primaryUrl) ? `
+          <a href="${this.escapeHtml(v.viewerUrl)}" target="_blank" rel="noopener noreferrer" class="modula-btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            Panopto Direct Link
+          </a>` : ''}
+          ${(canvasUrl && canvasUrl !== primaryUrl) ? `
           <a href="${this.escapeHtml(canvasUrl)}" target="_blank" rel="noopener noreferrer" class="modula-btn-secondary">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             Open in Canvas
@@ -280,7 +302,7 @@ class DownloadManager {
         </div>
 
         <p class="modula-video-note">
-          🔒 <strong>University SSO Protected:</strong> Lecture recordings are hosted securely on your institution's video portal. If playback does not start in the player above due to browser cookie isolation, click <strong>${playBtnText}</strong> to stream directly in your browser with full player controls, speed adjustments, and transcripts.
+          🔒 <strong>University SSO Protected:</strong> University lecture recordings are secured by your institution's Single Sign-On (SSO). Clicking <strong>${playBtnText}</strong> launches the lecture via Canvas with complete slide navigation, variable playback speeds, full audio, and searchable transcripts.
         </p>
       </div>
     </div>`;
@@ -391,6 +413,103 @@ class DownloadManager {
     .modula-video-body {
       padding: 20px;
     }
+
+    /* Video Screen Banner (for Panopto SSO streams) */
+    .modula-video-screen-banner {
+      display: flex;
+      position: relative;
+      width: 100%;
+      min-height: 250px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid var(--card-border);
+      background: linear-gradient(135deg, #151518 0%, #0d0d10 50%, #171212 100%);
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    @media (prefers-color-scheme: light) {
+      .modula-video-screen-banner {
+        background: linear-gradient(135deg, #1e2530 0%, #0f172a 100%);
+      }
+    }
+    .modula-video-screen-banner:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 28px rgba(225, 63, 43, 0.22), inset 0 0 60px rgba(0, 0, 0, 0.4);
+    }
+    .modula-video-screen-backdrop {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at center, rgba(225, 63, 43, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .modula-video-screen-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      text-align: center;
+      gap: 10px;
+    }
+    .modula-video-play-btn {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(225, 63, 43, 0.45);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      margin-bottom: 4px;
+    }
+    .modula-video-screen-banner:hover .modula-video-play-btn {
+      transform: scale(1.12);
+      box-shadow: 0 10px 32px rgba(225, 63, 43, 0.65);
+    }
+    .modula-video-screen-heading {
+      font-size: 17px;
+      font-weight: 600;
+      color: #ffffff;
+      max-width: 600px;
+      line-height: 1.35;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    .modula-video-screen-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(255, 255, 255, 0.1);
+      color: #e4e4e7;
+      padding: 4px 12px;
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+    .modula-video-screen-subtext {
+      font-size: 12px;
+      color: #a1a1aa;
+    }
+
     .modula-video-embed-wrap {
       position: relative;
       width: 100%;
@@ -500,15 +619,22 @@ class DownloadManager {
 
     if (videos && videos.length > 0) {
       for (const v of videos) {
+        const isPanopto = v.type === 'panopto';
+        const primaryUrl = isPanopto ? (canvasUrl || v.canvasLaunchUrl || v.viewerUrl) : (v.viewerUrl || canvasUrl);
+        const playBtnText = isPanopto ? 'Play Lecture Recording' : 'Watch Video';
+
         lines.push('---');
         lines.push('');
         lines.push(`### 🎥 ${v.platformName}: ${pageTitle}`);
-        lines.push(`- 🔗 **[▶ Watch Recording on Panopto](${v.viewerUrl})**`);
-        if (canvasUrl) {
+        lines.push(`- 🔗 **[▶ ${playBtnText}](${primaryUrl})**`);
+        if (isPanopto && v.viewerUrl && v.viewerUrl !== primaryUrl) {
+          lines.push(`- 🔗 **[Panopto Direct Link](${v.viewerUrl})**`);
+        }
+        if (canvasUrl && canvasUrl !== primaryUrl) {
           lines.push(`- 🔗 **[Open in Canvas Page](${canvasUrl})**`);
         }
         lines.push('');
-        lines.push(`> *Note: University lecture recordings require Single Sign-On (SSO). The link above opens directly in your browser with full player controls, speed adjustments, and transcripts.*`);
+        lines.push(`> *Note: University lecture recordings require Single Sign-On (SSO). The link above opens directly in your browser with full player controls, speed adjustments, slide navigation, and transcripts.*`);
         lines.push('');
         lines.push('---');
         lines.push('');
@@ -528,7 +654,7 @@ class DownloadManager {
   buildLinkHtml(title, targetUrl, item, videoInfo) {
     const isVideo = Boolean(videoInfo);
     const platformName = videoInfo ? videoInfo.platformName : (item.type === 'ExternalTool' ? 'Canvas External Tool' : 'External Web Resource');
-    const btnText = isVideo ? 'Watch Recording' : 'Open Resource';
+    const btnText = isVideo ? '▶ Play Lecture Recording' : 'Open Resource';
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -657,14 +783,24 @@ class DownloadManager {
     const isVideo = Boolean(videoInfo);
     const platformName = videoInfo ? videoInfo.platformName : (item.type === 'ExternalTool' ? 'Canvas External Tool' : 'External Web Resource');
 
-    return `# ${title}
+    const lines = [
+      `# ${title}`,
+      '',
+      `- **Resource Type:** ${platformName}`,
+      `- 🔗 **[${isVideo ? '▶ Play Lecture Recording' : 'Open Resource Link'}](${targetUrl})**`
+    ];
 
-- **Resource Type:** ${platformName}
-- 🔗 **[▶ ${isVideo ? 'Watch Lecture Recording' : 'Open Resource Link'}](${targetUrl})**
-${item.htmlUrl ? `- 🔗 **[View on Canvas](${item.htmlUrl})**` : ''}
+    if (item.htmlUrl && item.htmlUrl !== targetUrl) {
+      lines.push(`- 🔗 **[View on Canvas](${item.htmlUrl})**`);
+    }
+    if (videoInfo && videoInfo.viewerUrl && videoInfo.viewerUrl !== targetUrl) {
+      lines.push(`- 🔗 **[Panopto Direct Link](${videoInfo.viewerUrl})**`);
+    }
 
-> *Note: This resource is hosted online. The link above opens directly in your browser with your active university session.*
-`;
+    lines.push('');
+    lines.push(`> *Note: This resource is hosted online. The link above opens directly in your browser with your active university Single Sign-On (SSO) session.*`);
+
+    return lines.join('\n');
   }
 
   htmlToMarkdown(html) {
@@ -878,6 +1014,11 @@ ${item.htmlUrl ? `- 🔗 **[View on Canvas](${item.htmlUrl})**` : ''}
         // 3. If videos exist, also save native desktop web shortcuts for 1-click browser launch
         if (videos.length > 0) {
           const primaryVideo = videos[0];
+          const isPanopto = primaryVideo.type === 'panopto';
+          const primaryUrl = isPanopto
+            ? (pageData.html_url || primaryVideo.canvasLaunchUrl || primaryVideo.viewerUrl)
+            : (primaryVideo.viewerUrl || pageData.html_url);
+
           try {
             const weblocPath = path.join(targetDir, `[Watch] ${title}.webloc`);
             const weblocContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -885,13 +1026,13 @@ ${item.htmlUrl ? `- 🔗 **[View on Canvas](${item.htmlUrl})**` : ''}
 <plist version="1.0">
 <dict>
   <key>URL</key>
-  <string>${this.escapeXml(primaryVideo.viewerUrl)}</string>
+  <string>${this.escapeXml(primaryUrl)}</string>
 </dict>
 </plist>`;
             fs.writeFileSync(weblocPath, weblocContent, 'utf8');
 
             const urlPath = path.join(targetDir, `[Watch] ${title}.url`);
-            const urlContent = `[InternetShortcut]\nURL=${primaryVideo.viewerUrl}\n`;
+            const urlContent = `[InternetShortcut]\nURL=${primaryUrl}\n`;
             fs.writeFileSync(urlPath, urlContent, 'utf8');
           } catch (e) {
             console.warn('Could not write desktop shortcut:', e.message);
@@ -1115,7 +1256,14 @@ ${item.htmlUrl ? `- 🔗 **[View on Canvas](${item.htmlUrl})**` : ''}
         const title = this.sanitize(item.title || 'link');
 
         const videoInfo = this.resolveVideoFromUrl(rawUrl, baseUrl, course.id, item);
-        const targetUrl = videoInfo ? videoInfo.viewerUrl : rawUrl;
+        let targetUrl = rawUrl;
+        if (videoInfo) {
+          if (videoInfo.type === 'panopto') {
+            targetUrl = item.htmlUrl || videoInfo.canvasLaunchUrl || videoInfo.viewerUrl;
+          } else {
+            targetUrl = videoInfo.viewerUrl;
+          }
+        }
 
         // 1. macOS native shortcut (.webloc)
         const weblocPath = path.join(targetDir, `${title}.webloc`);
