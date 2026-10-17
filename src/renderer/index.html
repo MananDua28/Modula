@@ -465,6 +465,43 @@
     </div>
   </div>
 
+  <!-- Force Update Modal (Minimum Version Kill-Switch) -->
+  <div id="forceUpdateModal" class="force-update-overlay hidden">
+    <div class="force-update-card">
+      <div class="force-update-icon-glow">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </div>
+      <div class="force-update-badge">CRITICAL UPDATE REQUIRED</div>
+      <h2 id="forceUpdateTitle" class="force-update-title">Update to Continue Using Modula</h2>
+      <div class="force-update-version-pills">
+        <span class="version-pill current" id="forceUpdateCurrentVer">Installed: v1.0.3</span>
+        <span class="version-arrow">➔</span>
+        <span class="version-pill latest" id="forceUpdateLatestVer">Required: v1.0.4+</span>
+      </div>
+      <p id="forceUpdateMessage" class="force-update-desc">
+        Your installed version of Modula is no longer supported. Please update to the latest release to continue syncing and downloading your Canvas modules.
+      </p>
+      <div id="forceUpdateNotes" class="force-update-notes hidden"></div>
+      <div class="force-update-actions">
+        <button id="btnForceDownloadUpdate" class="btn btn-primary btn-lg force-update-btn" type="button">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 6px;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="btnForceDownloadText">Download &amp; Install Update</span>
+        </button>
+      </div>
+      <div class="force-update-lock-note">
+        🔒 Modula core features are paused until update is applied.
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div id="toast" class="toast hidden"></div>
 

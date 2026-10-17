@@ -1,0 +1,9 @@
+{
+  "latestVersion": "1.0.3",
+  "minSupportedVersion": "1.0.0",
+  "forceUpdate": false,
+  "title": "Critical Update Required",
+  "message": "Your version of Modula is no longer supported. Please update to the latest version to continue syncing your Canvas modules and accessing course materials.",
+  "downloadUrl": "https://github.com/MananDua28/Modula/releases/latest",
+  "publishedAt": "2026-10-17T08:00:00Z"
+}

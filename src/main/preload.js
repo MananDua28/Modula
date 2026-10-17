@@ -69,11 +69,17 @@ contextBridge.exposeInMainWorld('modula', {
   // App Version & Updates
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
   checkForUpdates: () => ipcRenderer.invoke('app:check-for-updates'),
+  getUpdateStatus: () => ipcRenderer.invoke('app:get-update-status'),
   openExternal: (url) => ipcRenderer.invoke('system:open-external', url),
   onUpdateAvailable: (callback) => {
     const handler = (_event, data) => callback(data);
     ipcRenderer.on('app:update-available', handler);
     return () => ipcRenderer.removeListener('app:update-available', handler);
+  },
+  onForceUpdateRequired: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('app:force-update-required', handler);
+    return () => ipcRenderer.removeListener('app:force-update-required', handler);
   },
 
   // Student Verification & Auth

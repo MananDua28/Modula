@@ -81,6 +81,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnCheckUpdatesText: document.getElementById('btnCheckUpdatesText'),
     updateNoticeBox: document.getElementById('updateNoticeBox'),
 
+    // Force Update Modal (Minimum Version Kill-Switch)
+    forceUpdateModal: document.getElementById('forceUpdateModal'),
+    forceUpdateTitle: document.getElementById('forceUpdateTitle'),
+    forceUpdateCurrentVer: document.getElementById('forceUpdateCurrentVer'),
+    forceUpdateLatestVer: document.getElementById('forceUpdateLatestVer'),
+    forceUpdateMessage: document.getElementById('forceUpdateMessage'),
+    forceUpdateNotes: document.getElementById('forceUpdateNotes'),
+    btnForceDownloadUpdate: document.getElementById('btnForceDownloadUpdate'),
+    btnForceDownloadText: document.getElementById('btnForceDownloadText'),
+
     // Student Onboarding & Verification
     onboardingModal: document.getElementById('onboardingModal'),
     onboardingStepEmail: document.getElementById('onboardingStepEmail'),
@@ -127,6 +137,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       await connectAndLoadCourses();
     }
     await initAppVersion();
+
+    // Check if an initial update check was already performed and requires a force update
+    try {
+      const updateStatus = await window.modula.getUpdateStatus();
+      if (updateStatus && updateStatus.isForceUpdate) {
+        handleForceUpdateRequired(updateStatus);
+      }
+    } catch (_) {}
   }
 
   // Configuration & Theme
@@ -191,6 +209,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function handleForceUpdateRequired(updateInfo) {
+    latestUpdateInfo = updateInfo;
+    state.isForceUpdateLocked = true;
+
+    if (elements.forceUpdateModal) {
+      if (elements.forceUpdateTitle && updateInfo.title) {
+        elements.forceUpdateTitle.textContent = updateInfo.title;
+      }
+      if (elements.forceUpdateCurrentVer) {
+        elements.forceUpdateCurrentVer.textContent = `Installed: v${updateInfo.currentVersion || '1.0.3'}`;
+      }
+      if (elements.forceUpdateLatestVer) {
+        elements.forceUpdateLatestVer.textContent = `Required: v${updateInfo.latestVersion || updateInfo.minSupportedVersion || '1.0.4+'}`;
+      }
+      if (elements.forceUpdateMessage && updateInfo.message) {
+        elements.forceUpdateMessage.textContent = updateInfo.message;
+      }
+      if (elements.btnForceDownloadText) {
+        elements.btnForceDownloadText.textContent = `Download & Install Modula v${updateInfo.latestVersion || ''}`;
+      }
+      if (elements.forceUpdateNotes && updateInfo.releaseNotes) {
+        elements.forceUpdateNotes.textContent = updateInfo.releaseNotes.trim();
+        elements.forceUpdateNotes.classList.remove('hidden');
+      }
+
+      elements.forceUpdateModal.classList.remove('hidden');
+    }
+
+    // Disable all background downloads, sync buttons, and settings
+    if (elements.btnSyncNow) elements.btnSyncNow.disabled = true;
+    if (elements.syncStatusText) elements.syncStatusText.textContent = 'Update Required';
+    if (elements.syncStatusPill) {
+      elements.syncStatusPill.classList.remove('syncing');
+      elements.syncStatusPill.style.borderColor = 'var(--color-canvas-red)';
+    }
+
+    // Disable all download buttons currently on screen
+    document.querySelectorAll('.btn-download-single, .btn-download-module, .btn-download-all').forEach(btn => {
+      btn.disabled = true;
+    });
+  }
+
   async function downloadAppUpdate(updateInfo) {
     if (!updateInfo || !updateInfo.downloadUrl) return;
     showToast('Opening download link...');
@@ -209,7 +269,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const result = await window.modula.checkForUpdates();
-      if (result.updateAvailable) {
+      if (result.isForceUpdate) {
+        handleForceUpdateRequired(result);
+      } else if (result.updateAvailable) {
         handleUpdateAvailable(result);
         showToast(`Update available: Modula v${result.latestVersion}`);
       } else if (result.error) {
@@ -1237,10 +1299,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
+    if (window.modula.onForceUpdateRequired) {
+      window.modula.onForceUpdateRequired((info) => {
+        handleForceUpdateRequired(info);
+      });
+    }
+
     if (elements.btnBannerDownload) {
       elements.btnBannerDownload.addEventListener('click', () => {
         if (latestUpdateInfo) {
           downloadAppUpdate(latestUpdateInfo);
+        }
+      });
+    }
+
+    if (elements.btnForceDownloadUpdate) {
+      elements.btnForceDownloadUpdate.addEventListener('click', () => {
+        if (latestUpdateInfo) {
+          downloadAppUpdate(latestUpdateInfo);
+        } else {
+          window.modula.openExternal('https://github.com/MananDua28/Modula/releases/latest');
         }
       });
     }
