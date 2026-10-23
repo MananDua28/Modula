@@ -400,6 +400,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
 
     try {
+      await refreshDownloadHistory();
       const modules = await window.modula.getModules(course.id);
       state.modules = modules;
       elements.btnDownloadCourse.disabled = modules.length === 0;
@@ -590,7 +591,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (downloadedRecord && downloadedRecord.localPath) {
-      const isVideo = /panopto|lecture|recording|video|webinar|zoom|recap/i.test(item.title || '');
+      const isVideo = !!(
+        item.isPanopto ||
+        item.deliveryId ||
+        /panopto|lecture|recording|video|webinar|zoom|recap/i.test(item.title || '') ||
+        (item.url && item.url.includes('panopto')) ||
+        (downloadedRecord.localPath && downloadedRecord.localPath.toLowerCase().endsWith('.mp4'))
+      );
       const openLabel = isVideo ? 'Watch' : (item.type === 'ExternalTool' || item.type === 'ExternalUrl' ? 'Open Link' : 'Open');
       return `
         <button class="btn btn-ghost btn-sm btn-open-file" title="${isVideo ? 'Watch recording' : 'Open file'}">
@@ -632,15 +639,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const btnOpen = row.querySelector('.btn-open-file');
     if (btnOpen && downloadedRecord) {
-      btnOpen.addEventListener('click', () => {
-        window.modula.openPath(downloadedRecord.localPath);
+      btnOpen.addEventListener('click', async () => {
+        const opened = await window.modula.openPath(downloadedRecord.localPath);
+        if (!opened) {
+          showToast('File no longer exists on disk. You can download it again.');
+          await refreshDownloadHistory();
+          updateItemRow(item.id);
+        }
       });
     }
 
     const btnShowFolder = row.querySelector('.btn-show-folder');
     if (btnShowFolder && downloadedRecord) {
-      btnShowFolder.addEventListener('click', () => {
-        window.modula.showItemInFolder(downloadedRecord.localPath);
+      btnShowFolder.addEventListener('click', async () => {
+        const shown = await window.modula.showItemInFolder(downloadedRecord.localPath);
+        if (!shown) {
+          showToast('File no longer exists on disk. You can download it again.');
+          await refreshDownloadHistory();
+          updateItemRow(item.id);
+        }
       });
     }
   }
@@ -660,6 +677,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (actionsContainer) {
           actionsContainer.innerHTML = renderItemActionButtons(it, downloadedRecord, activeTask);
           attachItemEventListeners(row, mod, it, mod.position || 1, downloadedRecord);
+        }
+
+        const metaContainer = row.querySelector('.item-meta');
+        if (metaContainer) {
+          let sizeStr = '';
+          if (downloadedRecord && downloadedRecord.size) {
+            sizeStr = formatBytes(downloadedRecord.size);
+          } else if (it.contentDetails && it.contentDetails.size) {
+            sizeStr = formatBytes(it.contentDetails.size);
+          }
+          const isPanoptoVideo = !!(it.isPanopto || it.deliveryId || /panopto|lecture|recording/i.test(it.title || '') || (it.url && it.url.includes('panopto')));
+          const isNew = state.newItems.has(it.id);
+          metaContainer.innerHTML = `
+            ${isNew ? '<span class="badge-tag-new">NEW</span>' : ''}
+            <span>${isPanoptoVideo ? 'Lecture Video (MP4)' : it.type}</span>
+            ${sizeStr ? `<span>· ${sizeStr}</span>` : ''}
+            ${it.contentDetails && it.contentDetails.due_at ? `<span>· Due ${new Date(it.contentDetails.due_at).toLocaleDateString()}</span>` : ''}
+          `;
         }
         break;
       }
@@ -1241,7 +1276,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     elements.btnTriggerSync.addEventListener('click', async () => {
       elements.syncStatusPill.classList.add('syncing');
       elements.syncStatusText.textContent = 'Syncing...';
+      await refreshDownloadHistory();
+      if (state.modules.length > 0) {
+        state.modules.forEach(mod => {
+          (mod.items || []).forEach(it => updateItemRow(it.id));
+        });
+      }
       await window.modula.triggerSync();
+    });
+
+    // Auto-detect deleted or modified files when switching back to Modula
+    window.addEventListener('focus', async () => {
+      if (state.selectedCourse && state.modules.length > 0 && state.activeDownloads.size === 0) {
+        const prevCount = Object.keys(state.downloadHistory || {}).length;
+        await refreshDownloadHistory();
+        const newCount = Object.keys(state.downloadHistory || {}).length;
+        if (prevCount !== newCount) {
+          state.modules.forEach(mod => {
+            (mod.items || []).forEach(it => updateItemRow(it.id));
+          });
+        }
+      }
     });
 
     // Open Downloads Folder

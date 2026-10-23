@@ -377,15 +377,28 @@ class CanvasAPI {
       const tabs = await this.request(`${cleanUrl}/api/v1/courses/${courseId}/tabs`, token).catch(() => null);
       if (!tabs || !Array.isArray(tabs.data)) return [];
 
+      let toolId = null;
       const panoptoTab = tabs.data.find(t =>
         t && t.id && t.id.includes('external_tool') &&
-        (t.label.toLowerCase() === 'panopto' || t.label.toLowerCase().includes('recording'))
+        t.label && /panopto|recording|lecture\s*capture/i.test(t.label)
       );
-      if (!panoptoTab) return [];
+      if (panoptoTab) {
+        const toolIdMatch = panoptoTab.id.match(/\d+/);
+        if (toolIdMatch) toolId = toolIdMatch[0];
+      }
 
-      const toolIdMatch = panoptoTab.id.match(/\d+/);
-      if (!toolIdMatch) return [];
-      const toolId = toolIdMatch[0];
+      if (!toolId) {
+        const extTools = await this.request(`${cleanUrl}/api/v1/courses/${courseId}/external_tools`, token).catch(() => null);
+        if (extTools && Array.isArray(extTools.data)) {
+          const pTool = extTools.data.find(t =>
+            (t.url && t.url.toLowerCase().includes('panopto')) ||
+            (t.name && /panopto|recording|lecture\s*capture/i.test(t.name))
+          );
+          if (pTool) toolId = pTool.id;
+        }
+      }
+
+      if (!toolId) return [];
 
       const launch = await this.request(`${cleanUrl}/api/v1/courses/${courseId}/external_tools/sessionless_launch?id=${toolId}`, token).catch(() => null);
       if (!launch || !launch.data || !launch.data.url) return [];

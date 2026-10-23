@@ -106,10 +106,27 @@ class ConfigStore {
     if (item && item.localPath && fs.existsSync(item.localPath)) {
       return item;
     }
+    if (item) {
+      delete this.history[itemId];
+      this.saveJson(this.historyFile, this.history);
+    }
     return null;
   }
 
   getHistory() {
+    let changed = false;
+    const activeHistory = {};
+    for (const [id, record] of Object.entries(this.history)) {
+      if (record && record.localPath && fs.existsSync(record.localPath)) {
+        activeHistory[id] = record;
+      } else {
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.history = activeHistory;
+      this.saveJson(this.historyFile, this.history);
+    }
     return { ...this.history };
   }
 
