@@ -199,9 +199,12 @@ class PanoptoDownloader {
     let di = await this.queryDeliveryInfo(host, deliveryId, cookies);
 
     if (di.unauthorized) {
-      console.log('Panopto cookies expired, prompting user login...');
+      console.log('Panopto cookies expired or invalid, prompting user login...');
       cookies = await this.getValidCookies(host, deliveryId, true);
       di = await this.queryDeliveryInfo(host, deliveryId, cookies);
+      if (di.unauthorized) {
+        throw new Error('Access denied: Your account does not have permission from the professor to view this recording (as shown in Panopto: "You do not have access to view this session").');
+      }
     }
 
     // 1. Check direct podcast download endpoint

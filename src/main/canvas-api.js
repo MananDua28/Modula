@@ -370,6 +370,132 @@ class CanvasAPI {
     return resourceModules;
   }
 
+  static async getCoursePanoptoVideos(baseUrl, token, courseId) {
+    const querystring = require('querystring');
+    try {
+      const cleanUrl = this.cleanBaseUrl(baseUrl);
+      const tabs = await this.request(`${cleanUrl}/api/v1/courses/${courseId}/tabs`, token).catch(() => null);
+      if (!tabs || !Array.isArray(tabs.data)) return [];
+
+      const panoptoTab = tabs.data.find(t =>
+        t && t.id && t.id.includes('external_tool') &&
+        (t.label.toLowerCase() === 'panopto' || t.label.toLowerCase().includes('recording'))
+      );
+      if (!panoptoTab) return [];
+
+      const toolIdMatch = panoptoTab.id.match(/\d+/);
+      if (!toolIdMatch) return [];
+      const toolId = toolIdMatch[0];
+
+      const launch = await this.request(`${cleanUrl}/api/v1/courses/${courseId}/external_tools/sessionless_launch?id=${toolId}`, token).catch(() => null);
+      if (!launch || !launch.data || !launch.data.url) return [];
+      const launchUrl = launch.data.url;
+      const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36';
+
+      const step1 = await new Promise(r => {
+        https.get(launchUrl, { headers: { 'User-Agent': ua } }, res => {
+          const loc = res.headers.location;
+          const cookies = (res.headers['set-cookie'] || []).map(c => c.split(';')[0]).join('; ');
+          r({ loc, cookies });
+        }).on('error', () => r({ loc: null, cookies: '' }));
+      });
+      if (!step1.loc) return [];
+
+      const step2 = await new Promise(r => {
+        https.get(step1.loc, { headers: { 'User-Agent': ua, 'Cookie': step1.cookies } }, res => {
+          let b = '';
+          res.on('data', c => b += c);
+          res.on('end', () => r(b));
+        }).on('error', () => r(''));
+      });
+
+      const formMatch = step2.match(/<form[^>]*action=["\']([^"\']+)["\'][^>]*>(.*?)<\/form>/is);
+      if (!formMatch) return [];
+
+      const actionUrl = formMatch[1];
+      const inputs = [...formMatch[2].matchAll(/<input[^>]*name=["\']([^"\']+)["\'][^>]*value=["\']([^"\']*)["\']/gis)];
+      const postData = {};
+      for (const inp of inputs) postData[inp[1]] = inp[2];
+
+      const payload = querystring.stringify(postData);
+      const parsedAction = new URL(actionUrl);
+
+      const step3 = await new Promise(r => {
+        const req = https.request({
+          hostname: parsedAction.hostname,
+          port: 443,
+          path: parsedAction.pathname + parsedAction.search,
+          method: 'POST',
+          headers: {
+            'User-Agent': ua,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(payload),
+            'Origin': cleanUrl,
+            'Referer': step1.loc
+          }
+        }, res => {
+          const loc = res.headers.location || '';
+          const cookies = (res.headers['set-cookie'] || []).map(c => c.split(';')[0]).join('; ');
+          r({ loc, cookies, host: parsedAction.hostname });
+        });
+        req.on('error', () => r({ loc: '', cookies: '', host: parsedAction.hostname }));
+        req.write(payload);
+        req.end();
+      });
+
+      const folderMatch = step3.loc.match(/folderID%3D([a-f0-9\-]{36})/i) || step3.loc.match(/folderID=([a-f0-9\-]{36})/i);
+      if (!folderMatch) return [];
+      const folderId = folderMatch[1];
+
+      const sessionsPayload = JSON.stringify({ queryParameters: { folderID: folderId } });
+      const sessions = await new Promise(r => {
+        const req = https.request({
+          hostname: step3.host,
+          port: 443,
+          path: '/Panopto/Services/Data.svc/GetSessions',
+          method: 'POST',
+          headers: {
+            'User-Agent': ua,
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(sessionsPayload),
+            'Cookie': step3.cookies
+          }
+        }, res => {
+          let b = '';
+          res.on('data', c => b += c);
+          res.on('end', () => {
+            try {
+              const j = JSON.parse(b);
+              r((j.d && j.d.Results) || []);
+            } catch(e) { r([]); }
+          });
+        });
+        req.on('error', () => r([]));
+        req.write(sessionsPayload);
+        req.end();
+      });
+
+      return sessions.map((s, idx) => ({
+        id: `res_panopto_${s.DeliveryID}`,
+        title: s.SessionName,
+        type: 'ExternalUrl',
+        position: idx + 1,
+        indent: 0,
+        url: `https://${step3.host}/Panopto/Pages/Viewer.aspx?id=${s.DeliveryID}`,
+        externalUrl: `https://${step3.host}/Panopto/Pages/Viewer.aspx?id=${s.DeliveryID}`,
+        htmlUrl: `https://${step3.host}/Panopto/Pages/Viewer.aspx?id=${s.DeliveryID}`,
+        isPanopto: true,
+        deliveryId: s.DeliveryID,
+        host: step3.host,
+        duration: s.Duration,
+        cookies: step3.cookies
+      }));
+    } catch (err) {
+      console.warn('Error fetching course Panopto recordings:', err.message);
+      return [];
+    }
+  }
+
   static async getModules(baseUrl, token, courseId) {
     let nativeModules = [];
     try {
@@ -404,8 +530,24 @@ class CanvasAPI {
     // Discover Front Page & Resource Pages (e.g. "Module Resources")
     const resourceModules = await this.getCourseHomeResources(baseUrl, token, courseId);
 
-    // Combine: Resource Modules first (at the top), then native modules
-    const allModules = [...resourceModules, ...nativeModules];
+    // Discover Official Course Panopto Recordings (Current Semester)
+    const panoptoItems = await this.getCoursePanoptoVideos(baseUrl, token, courseId);
+    const panoptoModules = [];
+    if (panoptoItems.length > 0) {
+      panoptoModules.push({
+        id: `panopto_recordings_${courseId}`,
+        name: 'Panopto Lecture Recordings (Current Semester)',
+        position: 0,
+        itemsCount: panoptoItems.length,
+        state: 'active',
+        isResourceModule: true,
+        isPanoptoModule: true,
+        items: panoptoItems
+      });
+    }
+
+    // Combine: Panopto Recordings + Resource Modules + native modules
+    const allModules = [...panoptoModules, ...resourceModules, ...nativeModules];
 
     // Re-index positions
     allModules.forEach((m, idx) => {

@@ -1297,36 +1297,37 @@ class DownloadManager {
 
         // Try downloading real Panopto MP4 video if it is a Panopto recording!
         if (videoInfo && videoInfo.type === 'panopto') {
-          try {
-            const host = videoInfo.host;
-            const deliveryId = videoInfo.deliveryId;
-            const media = await this.panoptoDownloader.resolveMedia(host, deliveryId);
+          const host = videoInfo.host;
+          const deliveryId = videoInfo.deliveryId;
 
-            if (media && media.url) {
-              const mp4Path = path.join(targetDir, `${title}.mp4`);
-              const dlResult = await this.panoptoDownloader.downloadToFile(
-                media.url,
-                media.cookies,
-                mp4Path,
-                (progress) => {
-                  this.notifyRenderer('download:progress', {
-                    queueId,
-                    item,
-                    percent: progress.percent,
-                    transferred: progress.transferred,
-                    total: progress.total
-                  });
-                },
-                abortSignal
-              );
+          if (item.cookies) {
+            this.configStore.setPanoptoCookies(item.cookies, host);
+          }
 
-              if (dlResult && dlResult.size > 0) {
-                downloadedVideoPath = dlResult.destPath;
-                downloadedVideoSize = dlResult.size;
-              }
+          const media = await this.panoptoDownloader.resolveMedia(host, deliveryId);
+
+          if (media && media.url) {
+            const mp4Path = path.join(targetDir, `${title}.mp4`);
+            const dlResult = await this.panoptoDownloader.downloadToFile(
+              media.url,
+              media.cookies,
+              mp4Path,
+              (progress) => {
+                this.notifyRenderer('download:progress', {
+                  queueId,
+                  item,
+                  percent: progress.percent,
+                  transferred: progress.transferred,
+                  total: progress.total
+                });
+              },
+              abortSignal
+            );
+
+            if (dlResult && dlResult.size > 0) {
+              downloadedVideoPath = dlResult.destPath;
+              downloadedVideoSize = dlResult.size;
             }
-          } catch (panoptoErr) {
-            console.warn(`Could not download Panopto MP4 for "${title}":`, panoptoErr.message);
           }
         }
 
