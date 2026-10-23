@@ -52,27 +52,22 @@
     },
     "dmg": {
       "title": "Modula Installer",
+      "backgroundColor": "#f6f6f8",
       "window": {
-        "width": 540,
-        "height": 380
+        "width": 460,
+        "height": 320
       },
       "contents": [
         {
-          "x": 140,
-          "y": 140,
-          "type": "file"
-        },
-        {
-          "x": 400,
-          "y": 140,
-          "type": "link",
-          "path": "/Applications"
-        },
-        {
-          "x": 140,
+          "x": 230,
           "y": 140,
           "type": "file",
-          "path": "assets/1-Click Install.command"
+          "path": "assets/Double Click to Install.command"
+        },
+        {
+          "x": 2000,
+          "y": 2000,
+          "type": "file"
         }
       ]
     },

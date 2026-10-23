@@ -3,7 +3,7 @@
 clear
 
 echo "=================================================="
-echo "         Modula — 1-Click Authorization           "
+echo "          Installing Modula for macOS             "
 echo "=================================================="
 echo ""
 
@@ -14,6 +14,7 @@ APP_IN_APPS="/Applications/Modula.app"
 # 1. Copy Modula to /Applications
 if [ -d "$APP_IN_DMG" ]; then
   echo "📦 Installing Modula to /Applications..."
+  pkill -x Modula 2>/dev/null
   rm -rf "$APP_IN_APPS" 2>/dev/null
   cp -R "$APP_IN_DMG" /Applications/
 fi
@@ -34,4 +35,4 @@ fi
 echo ""
 echo "Done! You can close this window."
 sleep 1
-osascript -e 'tell application "Terminal" to close front window' & exit
+osascript -e 'tell application "Terminal" to close front window' 2>/dev/null & exit
