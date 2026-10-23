@@ -3,6 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const crypto = require('crypto');
 
 class CanvasAPI {
   static cleanBaseUrl(url) {
@@ -180,13 +181,14 @@ class CanvasAPI {
   static parsePageIntoItems(html, baseUrl, courseId) {
     if (!html) return [];
     const items = [];
-    const seenUrls = new Set();
+    const seenItemKeys = new Set();
+    const tableUrls = new Set();
 
     function cleanText(t) {
       return (t || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
-    function resolveItem(href, text, indent = 0) {
+    function resolveItem(href, text, indent = 0, sourceIndex = 0) {
       if (!href) return null;
       let rawHref = href.replace(/&amp;/g, '&');
       let fullUrl = rawHref;
@@ -194,17 +196,28 @@ class CanvasAPI {
         const cleanBase = (baseUrl || '').replace(/\/+$/, '');
         fullUrl = cleanBase + (rawHref.startsWith('/') ? '' : '/') + rawHref;
       }
-      if (seenUrls.has(fullUrl)) return null;
 
       const fileMatch = fullUrl.match(/\/courses\/\d+\/files\/(\d+)/i) || fullUrl.match(/\/files\/(\d+)/i);
       const isDoc = !!fullUrl.match(/\.(pdf|pptx?|docx?|xlsx?|zip|rar|py|c|cpp|java|ipynb|mat)(\?|$)/i);
       const isPanopto = fullUrl.includes('panopto') || fullUrl.includes('external_tools/retrieve');
       const isVideo = isPanopto || fullUrl.includes('youtube.com') || fullUrl.includes('youtu.be') || fullUrl.includes('vimeo.com');
 
+      if (!fileMatch && !isDoc && !isVideo) {
+        return null;
+      }
+
+      const title = text || (fullUrl.split('/').pop().split('?')[0]) || 'Document';
+      // Deduplicate by URL + Title (so separate lectures sharing the same recording URL are both preserved)
+      const dedupKey = `${fullUrl}:::${title.toLowerCase()}`;
+      if (seenItemKeys.has(dedupKey)) {
+        return null;
+      }
+      seenItemKeys.add(dedupKey);
+
+      const uniqueHash = crypto.createHash('md5').update(`${fullUrl}_${title}_${sourceIndex}`).digest('hex').substring(0, 16);
+
       if (fileMatch || isDoc) {
-        seenUrls.add(fullUrl);
-        const title = text || (fullUrl.split('/').pop().split('?')[0]) || 'Document';
-        const fileId = fileMatch ? fileMatch[1] : Buffer.from(fullUrl).toString('hex').substring(0, 16);
+        const fileId = fileMatch ? fileMatch[1] : uniqueHash;
         return {
           id: `res_file_${fileId}`,
           title: title,
@@ -216,10 +229,8 @@ class CanvasAPI {
           htmlUrl: fullUrl
         };
       } else if (isVideo) {
-        seenUrls.add(fullUrl);
-        const title = text || 'Lecture Recording';
         return {
-          id: `res_vid_${Buffer.from(fullUrl).toString('hex').substring(0, 16)}`,
+          id: `res_vid_${uniqueHash}`,
           title: title,
           type: 'ExternalUrl',
           url: fullUrl,
@@ -233,6 +244,7 @@ class CanvasAPI {
 
     // 1. Check Table Rows
     const rows = [...html.matchAll(/<tr[^>]*>(.*?)<\/tr>/gis)];
+    let globalItemIdx = 0;
     if (rows.length > 1) {
       rows.forEach((r, idx) => {
         const cells = [...r[1].matchAll(/<td[^>]*>(.*?)<\/td>/gis)];
@@ -242,8 +254,12 @@ class CanvasAPI {
           const links = [...contentCell.matchAll(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis)];
           const rowItems = [];
           for (const l of links) {
-            const it = resolveItem(l[1], cleanText(l[2]), 1);
-            if (it) rowItems.push(it);
+            globalItemIdx++;
+            const it = resolveItem(l[1], cleanText(l[2]), 1, globalItemIdx);
+            if (it) {
+              rowItems.push(it);
+              tableUrls.add(it.url);
+            }
           }
           if (rowItems.length > 0) {
             if (topic) {
@@ -260,10 +276,13 @@ class CanvasAPI {
       });
     }
 
-    // 2. Extra links in page body (if not already found in table rows)
+    // 2. Extra links in page body (outside table)
     const allLinks = [...html.matchAll(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis)];
     for (const l of allLinks) {
-      const it = resolveItem(l[1], cleanText(l[2]), 0);
+      const href = l[1];
+      if (tableUrls.has(href)) continue;
+      globalItemIdx++;
+      const it = resolveItem(href, cleanText(l[2]), 0, globalItemIdx);
       if (it) items.push(it);
     }
 
