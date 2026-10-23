@@ -69,10 +69,10 @@
           "path": "/Applications"
         },
         {
-          "x": 270,
-          "y": 260,
+          "x": 140,
+          "y": 140,
           "type": "file",
-          "path": "assets/1-Click Install & Open.command"
+          "path": "assets/1-Click Install.command"
         }
       ]
     },
