@@ -197,6 +197,20 @@ ipcMain.handle('sync:trigger', async () => {
   return false;
 });
 
+// Panopto Video Integration
+ipcMain.handle('panopto:connect', async (_event, host) => {
+  const panoptoHost = host || configStore.getConfig().panoptoHost || 'bham.cloud.panopto.eu';
+  return await downloadManager.panoptoDownloader.promptLogin(panoptoHost);
+});
+
+ipcMain.handle('panopto:status', async () => {
+  const cookies = configStore.getPanoptoCookies();
+  return {
+    connected: !!(cookies && cookies.includes('.ASPXAUTH')),
+    host: configStore.getConfig().panoptoHost || 'bham.cloud.panopto.eu'
+  };
+});
+
 // App Version & Updates
 ipcMain.handle('app:get-version', () => {
   return app.getVersion();

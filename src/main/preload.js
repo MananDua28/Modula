@@ -29,6 +29,10 @@ contextBridge.exposeInMainWorld('modula', {
   // Auto-Sync
   triggerSync: () => ipcRenderer.invoke('sync:trigger'),
 
+  // Panopto Video Integration
+  connectPanopto: (host) => ipcRenderer.invoke('panopto:connect', host),
+  getPanoptoStatus: () => ipcRenderer.invoke('panopto:status'),
+
   // Event Listeners
   onDownloadQueued: (callback) => {
     const handler = (_event, data) => callback(data);

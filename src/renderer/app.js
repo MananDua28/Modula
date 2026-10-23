@@ -108,6 +108,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     settingStudentEmailDisplay: document.getElementById('settingStudentEmailDisplay'),
     settingVerifiedBadge: document.getElementById('settingVerifiedBadge'),
     btnSignOut: document.getElementById('btnSignOut'),
+    settingPanoptoStatusText: document.getElementById('settingPanoptoStatusText'),
+    settingPanoptoBadge: document.getElementById('settingPanoptoBadge'),
+    btnConnectPanopto: document.getElementById('btnConnectPanopto'),
 
     // Student Feedback
     feedbackModal: document.getElementById('feedbackModal'),
@@ -550,6 +553,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       sizeStr = formatBytes(item.contentDetails.size);
     }
 
+    const isPanoptoVideo = /panopto|lecture|recording/i.test(item.title || '') || (item.url && item.url.includes('panopto'));
+
     row.innerHTML = `
       <div class="item-left">
         <div class="item-icon">
@@ -559,7 +564,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="item-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</span>
           <div class="item-meta">
             ${isNew ? '<span class="badge-tag-new">NEW</span>' : ''}
-            <span>${item.type}</span>
+            <span>${isPanoptoVideo ? 'Lecture Video (MP4)' : item.type}</span>
             ${sizeStr ? `<span>· ${sizeStr}</span>` : ''}
             ${item.contentDetails && item.contentDetails.due_at ? `<span>· Due ${new Date(item.contentDetails.due_at).toLocaleDateString()}</span>` : ''}
           </div>
@@ -725,6 +730,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.settingVerifiedBadge.textContent = 'Unverified';
         elements.settingVerifiedBadge.className = 'verified-badge unverified';
       }
+    }
+
+    if (window.modula && window.modula.getPanoptoStatus) {
+      window.modula.getPanoptoStatus().then(status => {
+        if (elements.settingPanoptoBadge && elements.settingPanoptoStatusText && elements.btnConnectPanopto) {
+          if (status && status.connected) {
+            elements.settingPanoptoBadge.classList.remove('hidden');
+            elements.settingPanoptoStatusText.textContent = `Connected to ${status.host || 'University Panopto'}. Lecture recordings will download directly as MP4.`;
+            elements.btnConnectPanopto.textContent = 'Reconnect';
+          } else {
+            elements.settingPanoptoBadge.classList.add('hidden');
+            elements.settingPanoptoStatusText.textContent = 'Connect your Panopto account to download lecture recordings directly as MP4 video files.';
+            elements.btnConnectPanopto.textContent = 'Connect Panopto';
+          }
+        }
+      }).catch(() => {});
     }
   }
 
@@ -1107,6 +1128,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (elements.settingsModal) {
       elements.settingsModal.addEventListener('click', (e) => {
         if (e.target === elements.settingsModal) closeSettingsModal();
+      });
+    }
+
+    if (elements.btnConnectPanopto) {
+      elements.btnConnectPanopto.addEventListener('click', async () => {
+        try {
+          elements.btnConnectPanopto.disabled = true;
+          elements.btnConnectPanopto.textContent = 'Connecting...';
+          await window.modula.connectPanopto();
+          showToast('✓ University Panopto account connected!');
+          updateSettingsModalFields();
+        } catch (err) {
+          if (!err.message || !err.message.includes('cancelled')) {
+            showToast(`Could not connect Panopto: ${err.message}`, 'error');
+          }
+        } finally {
+          elements.btnConnectPanopto.disabled = false;
+          elements.btnConnectPanopto.textContent = 'Connect Panopto';
+          updateSettingsModalFields();
+        }
       });
     }
 

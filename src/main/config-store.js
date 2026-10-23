@@ -24,7 +24,9 @@ class ConfigStore {
       isVerified: false,
       verifiedAt: null,
       userId: null,
-      sessionToken: null
+      sessionToken: null,
+      panoptoCookies: '',
+      panoptoHost: ''
     };
 
     this.config = this.loadConfig();
@@ -109,6 +111,18 @@ class ConfigStore {
 
   getHistory() {
     return { ...this.history };
+  }
+
+  getPanoptoCookies() {
+    return this.config.panoptoCookies || '';
+  }
+
+  setPanoptoCookies(cookies, host) {
+    this.saveConfig({ panoptoCookies: cookies, panoptoHost: host });
+  }
+
+  clearPanoptoCookies() {
+    this.saveConfig({ panoptoCookies: '', panoptoHost: '' });
   }
 }
 

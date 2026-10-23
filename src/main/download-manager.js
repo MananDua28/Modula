@@ -2,11 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const { shell } = require('electron');
 const CanvasAPI = require('./canvas-api');
+const PanoptoDownloader = require('./panopto-downloader');
 
 class DownloadManager {
   constructor(configStore, mainWindow) {
     this.configStore = configStore;
     this.mainWindow = mainWindow;
+    this.panoptoDownloader = new PanoptoDownloader(configStore, () => this.mainWindow);
     this.queue = [];
     this.activeDownloads = new Map(); // id -> { abortController, item }
     this.maxConcurrent = 3;
@@ -1290,6 +1292,45 @@ class DownloadManager {
           }
         }
 
+        let downloadedVideoPath = null;
+        let downloadedVideoSize = 0;
+
+        // Try downloading real Panopto MP4 video if it is a Panopto recording!
+        if (videoInfo && videoInfo.type === 'panopto') {
+          try {
+            const host = videoInfo.host;
+            const deliveryId = videoInfo.deliveryId;
+            const media = await this.panoptoDownloader.resolveMedia(host, deliveryId);
+
+            if (media && media.url) {
+              const mp4Path = path.join(targetDir, `${title}.mp4`);
+              const dlResult = await this.panoptoDownloader.downloadToFile(
+                media.url,
+                media.cookies,
+                mp4Path,
+                (progress) => {
+                  this.notifyRenderer('download:progress', {
+                    queueId,
+                    item,
+                    percent: progress.percent,
+                    transferred: progress.transferred,
+                    total: progress.total
+                  });
+                },
+                abortSignal
+              );
+
+              if (dlResult && dlResult.size > 0) {
+                downloadedVideoPath = dlResult.destPath;
+                downloadedVideoSize = dlResult.size;
+              }
+            }
+          } catch (panoptoErr) {
+            console.warn(`Could not download Panopto MP4 for "${title}":`, panoptoErr.message);
+          }
+        }
+
+        // Always also generate native shortcuts and launch helpers
         // 1. macOS native shortcut (.webloc)
         const weblocPath = path.join(targetDir, `${title}.webloc`);
         const weblocContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -1317,10 +1358,12 @@ class DownloadManager {
         const mdContent = this.buildLinkMarkdown(title, targetUrl, item, videoInfo);
         fs.writeFileSync(mdPath, mdContent, 'utf8');
 
-        const primaryPath = process.platform === 'darwin' ? weblocPath : urlPath;
+        const primaryPath = downloadedVideoPath || (process.platform === 'darwin' ? weblocPath : urlPath);
+        const recordedSize = downloadedVideoSize || (Buffer.byteLength(urlContent) + Buffer.byteLength(htmlContent));
+
         this.configStore.recordDownload(item.id, {
           localPath: primaryPath,
-          size: Buffer.byteLength(urlContent) + Buffer.byteLength(htmlContent),
+          size: recordedSize,
           title: item.title,
           courseId: course.id,
           moduleId: module.id
