@@ -177,31 +177,223 @@ class CanvasAPI {
       }));
   }
 
+  static parsePageIntoItems(html, baseUrl, courseId) {
+    if (!html) return [];
+    const items = [];
+    const seenUrls = new Set();
+
+    function cleanText(t) {
+      return (t || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function resolveItem(href, text, indent = 0) {
+      if (!href) return null;
+      let rawHref = href.replace(/&amp;/g, '&');
+      let fullUrl = rawHref;
+      if (!fullUrl.startsWith('http')) {
+        const cleanBase = (baseUrl || '').replace(/\/+$/, '');
+        fullUrl = cleanBase + (rawHref.startsWith('/') ? '' : '/') + rawHref;
+      }
+      if (seenUrls.has(fullUrl)) return null;
+
+      const fileMatch = fullUrl.match(/\/courses\/\d+\/files\/(\d+)/i) || fullUrl.match(/\/files\/(\d+)/i);
+      const isDoc = !!fullUrl.match(/\.(pdf|pptx?|docx?|xlsx?|zip|rar|py|c|cpp|java|ipynb|mat)(\?|$)/i);
+      const isPanopto = fullUrl.includes('panopto') || fullUrl.includes('external_tools/retrieve');
+      const isVideo = isPanopto || fullUrl.includes('youtube.com') || fullUrl.includes('youtu.be') || fullUrl.includes('vimeo.com');
+
+      if (fileMatch || isDoc) {
+        seenUrls.add(fullUrl);
+        const title = text || (fullUrl.split('/').pop().split('?')[0]) || 'Document';
+        const fileId = fileMatch ? fileMatch[1] : Buffer.from(fullUrl).toString('hex').substring(0, 16);
+        return {
+          id: `res_file_${fileId}`,
+          title: title,
+          type: 'File',
+          url: fullUrl,
+          downloadUrl: fullUrl,
+          contentId: fileMatch ? parseInt(fileMatch[1], 10) : null,
+          indent: indent,
+          htmlUrl: fullUrl
+        };
+      } else if (isVideo) {
+        seenUrls.add(fullUrl);
+        const title = text || 'Lecture Recording';
+        return {
+          id: `res_vid_${Buffer.from(fullUrl).toString('hex').substring(0, 16)}`,
+          title: title,
+          type: 'ExternalUrl',
+          url: fullUrl,
+          externalUrl: fullUrl,
+          indent: indent,
+          htmlUrl: fullUrl
+        };
+      }
+      return null;
+    }
+
+    // 1. Check Table Rows
+    const rows = [...html.matchAll(/<tr[^>]*>(.*?)<\/tr>/gis)];
+    if (rows.length > 1) {
+      rows.forEach((r, idx) => {
+        const cells = [...r[1].matchAll(/<td[^>]*>(.*?)<\/td>/gis)];
+        if (cells.length >= 2) {
+          const topic = cleanText(cells[0][1]);
+          const contentCell = cells[1][1];
+          const links = [...contentCell.matchAll(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis)];
+          const rowItems = [];
+          for (const l of links) {
+            const it = resolveItem(l[1], cleanText(l[2]), 1);
+            if (it) rowItems.push(it);
+          }
+          if (rowItems.length > 0) {
+            if (topic) {
+              items.push({
+                id: `res_sub_${idx}`,
+                title: topic,
+                type: 'SubHeader',
+                indent: 0
+              });
+            }
+            items.push(...rowItems);
+          }
+        }
+      });
+    }
+
+    // 2. Extra links in page body (if not already found in table rows)
+    const allLinks = [...html.matchAll(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis)];
+    for (const l of allLinks) {
+      const it = resolveItem(l[1], cleanText(l[2]), 0);
+      if (it) items.push(it);
+    }
+
+    return items;
+  }
+
+  static async getCourseHomeResources(baseUrl, token, courseId) {
+    const cleanUrl = this.cleanBaseUrl(baseUrl);
+    const resourceModules = [];
+
+    try {
+      // 1. Fetch Front Page of course
+      const fpRes = await this.request(`${cleanUrl}/api/v1/courses/${courseId}/front_page`, token).catch(() => null);
+      if (!fpRes || !fpRes.data || !fpRes.data.body) {
+        return [];
+      }
+
+      const fpData = fpRes.data;
+      const fpBody = fpData.body || '';
+
+      // Find all internal page links in front page (e.g. "Module Resources" button)
+      const pageLinkRegex = new RegExp(`(?:courses\/${courseId}\/pages\/|${cleanUrl}\/courses\/${courseId}\/pages\/)([^"'\\s?#]+)`, 'gi');
+      const linkedPages = new Map();
+
+      const linkMatches = [...fpBody.matchAll(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis)];
+      for (const m of linkMatches) {
+        const href = m[1];
+        const text = m[2].replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const slugMatch = href.match(pageLinkRegex);
+        if (slugMatch) {
+          const parts = href.split('/pages/');
+          if (parts[1]) {
+            const slug = parts[1].split(/[?#]/)[0];
+            if (slug && slug !== fpData.url && !linkedPages.has(slug)) {
+              linkedPages.set(slug, text);
+            }
+          }
+        }
+      }
+
+      // Check linked pages (e.g. "Module Resources")
+      for (const [slug, linkText] of linkedPages.entries()) {
+        try {
+          const page = await this.getPageDetails(baseUrl, token, courseId, slug);
+          if (page && page.body) {
+            const items = this.parsePageIntoItems(page.body, baseUrl, courseId);
+            if (items.length > 0) {
+              const moduleName = linkText || page.title || 'Module Resources';
+              resourceModules.push({
+                id: `res_page_${slug}`,
+                name: moduleName,
+                position: 0,
+                itemsCount: items.length,
+                state: 'active',
+                isResourceModule: true,
+                pageUrl: slug,
+                items: items
+              });
+            }
+          }
+        } catch (pageErr) {
+          console.warn(`Could not load resource page ${slug}:`, pageErr.message);
+        }
+      }
+
+      // Also check Front Page itself for direct learning items
+      const fpItems = this.parsePageIntoItems(fpBody, baseUrl, courseId);
+      if (fpItems.length > 0) {
+        resourceModules.push({
+          id: `res_page_${fpData.url || 'front_page'}`,
+          name: fpData.title || 'Course Home Resources',
+          position: 0,
+          itemsCount: fpItems.length,
+          state: 'active',
+          isResourceModule: true,
+          pageUrl: fpData.url,
+          items: fpItems
+        });
+      }
+
+    } catch (err) {
+      console.warn('Error fetching course home resources:', err.message);
+    }
+
+    return resourceModules;
+  }
+
   static async getModules(baseUrl, token, courseId) {
-    const modules = await this.getPaginated(baseUrl, `courses/${courseId}/modules`, token, {
-      'include': ['items', 'content_details']
+    let nativeModules = [];
+    try {
+      const modules = await this.getPaginated(baseUrl, `courses/${courseId}/modules`, token, {
+        'include': ['items', 'content_details']
+      });
+
+      nativeModules = modules.map(m => ({
+        id: m.id,
+        name: m.name,
+        position: m.position,
+        itemsCount: m.items_count || (m.items ? m.items.length : 0),
+        state: m.state,
+        items: (m.items || []).map(item => ({
+          id: item.id,
+          title: item.title,
+          type: item.type, // 'File', 'Page', 'Assignment', 'Quiz', 'SubHeader', 'ExternalUrl', 'ExternalTool'
+          position: item.position,
+          indent: item.indent,
+          url: item.url,
+          contentId: item.content_id,
+          pageUrl: item.page_url,
+          externalUrl: item.external_url,
+          htmlUrl: item.html_url,
+          contentDetails: item.content_details || null
+        }))
+      }));
+    } catch (err) {
+      console.warn(`Could not fetch native modules for course ${courseId}:`, err.message);
+    }
+
+    // Discover Front Page & Resource Pages (e.g. "Module Resources")
+    const resourceModules = await this.getCourseHomeResources(baseUrl, token, courseId);
+
+    // Combine: Resource Modules first (at the top), then native modules
+    const allModules = [...resourceModules, ...nativeModules];
+
+    // Re-index positions
+    allModules.forEach((m, idx) => {
+      m.position = idx + 1;
     });
 
-    return modules.map(m => ({
-      id: m.id,
-      name: m.name,
-      position: m.position,
-      itemsCount: m.items_count || (m.items ? m.items.length : 0),
-      state: m.state,
-      items: (m.items || []).map(item => ({
-        id: item.id,
-        title: item.title,
-        type: item.type, // 'File', 'Page', 'Assignment', 'Quiz', 'SubHeader', 'ExternalUrl', 'ExternalTool'
-        position: item.position,
-        indent: item.indent,
-        url: item.url,
-        contentId: item.content_id,
-        pageUrl: item.page_url,
-        externalUrl: item.external_url,
-        htmlUrl: item.html_url,
-        contentDetails: item.content_details || null
-      }))
-    }));
+    return allModules;
   }
 
   static async getModuleItems(baseUrl, token, courseId, moduleId) {

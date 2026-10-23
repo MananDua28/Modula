@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       totalItems += (module.items || []).length;
       const isNewModule = state.newModules.has(module.id);
-      const isCollapsed = query ? false : (!isNewModule && moduleIdx > 0);
+      const isCollapsed = query ? false : (!isNewModule && moduleIdx > 0 && !module.isResourceModule);
       const moduleCard = createModuleCard(module, items, moduleIdx + 1, isCollapsed);
       elements.modulesContainer.appendChild(moduleCard);
     });
@@ -468,6 +468,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
         <span class="module-title">${escapeHtml(module.name)}</span>
+        ${module.isResourceModule ? '<span class="module-badge" style="background: rgba(224, 36, 36, 0.15); color: var(--color-canvas-red); border: 1px solid rgba(224, 36, 36, 0.3);">Course Home Resources</span>' : ''}
         ${isNewModule ? '<span class="module-badge badge-new">NEW</span>' : ''}
         ${isFullyDownloaded ? '<span class="module-badge badge-done">Downloaded</span>' : `<span class="module-badge">${items.length} items</span>`}
       </div>

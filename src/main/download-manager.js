@@ -945,24 +945,47 @@ class DownloadManager {
 
     try {
       if (item.type === 'File') {
-        let fileApiUrl = item.url;
-        let fileDetails = null;
+        let downloadUrl = item.downloadUrl;
+        let fileName = this.sanitize(item.title || 'file');
+        let fileSize = (item.contentDetails && item.contentDetails.size) ? item.contentDetails.size : 0;
 
-        if (fileApiUrl) {
-          fileDetails = await CanvasAPI.getFileDetails(baseUrl, token, fileApiUrl);
-        } else if (item.contentId) {
-          fileDetails = await CanvasAPI.getFileDetails(baseUrl, token, item.contentId);
+        if (!downloadUrl) {
+          let fileDetails = null;
+          try {
+            if (item.url && !item.url.includes('/download')) {
+              fileDetails = await CanvasAPI.getFileDetails(baseUrl, token, item.url);
+            } else if (item.contentId) {
+              fileDetails = await CanvasAPI.getFileDetails(baseUrl, token, item.contentId);
+            }
+          } catch (e) {
+            console.warn('Could not fetch file details via API, falling back to item URL:', e.message);
+          }
+
+          if (fileDetails && fileDetails.url) {
+            downloadUrl = fileDetails.url;
+            fileName = this.sanitize(fileDetails.display_name || item.title || 'file');
+            fileSize = fileDetails.size || fileSize;
+          } else if (item.url) {
+            downloadUrl = item.url;
+          }
         }
 
-        if (!fileDetails || !fileDetails.url) {
+        if (!downloadUrl) {
           throw new Error('Unable to resolve file download URL from Canvas');
         }
 
-        const fileName = this.sanitize(fileDetails.display_name || item.title || 'file');
+        // Ensure extension exists if detectable
+        if (!path.extname(fileName)) {
+          const matchExt = downloadUrl.match(/\.(pdf|pptx?|docx?|xlsx?|zip|rar|py|c|cpp|java|ipynb|mat)(\?|$)/i);
+          if (matchExt) {
+            fileName += '.' + matchExt[1].toLowerCase();
+          }
+        }
+
         const destPath = path.join(targetDir, fileName);
 
-        await CanvasAPI.downloadToFile(
-          fileDetails.url,
+        const dlResult = await CanvasAPI.downloadToFile(
+          downloadUrl,
           token,
           destPath,
           (progress) => {
@@ -976,9 +999,11 @@ class DownloadManager {
           abortSignal
         );
 
+        const recordedSize = (dlResult && dlResult.size) ? dlResult.size : fileSize;
+
         this.configStore.recordDownload(item.id, {
           localPath: destPath,
-          size: fileDetails.size || 0,
+          size: recordedSize,
           title: item.title,
           courseId: course.id,
           moduleId: module.id
