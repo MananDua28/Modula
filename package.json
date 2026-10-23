@@ -50,6 +50,32 @@
       "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
+    "dmg": {
+      "title": "Modula Installer",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 140,
+          "y": 140,
+          "type": "file"
+        },
+        {
+          "x": 400,
+          "y": 140,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 270,
+          "y": 260,
+          "type": "file",
+          "path": "assets/1-Click Install & Open.command"
+        }
+      ]
+    },
     "win": {
       "icon": "assets/icon.ico",
       "target": [
