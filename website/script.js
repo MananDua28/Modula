@@ -95,8 +95,8 @@ function detectOSAndAdaptCTA() {
   const ua = window.navigator.userAgent.toLowerCase();
   const isWindows = ua.includes('win');
 
-  const macDownloadUrl = "https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-1.0.3-arm64.dmg";
-  const winDownloadUrl = "https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Setup-1.0.3.exe";
+  const macDownloadUrl = "https://github.com/MananDua28/Modula/releases/download/v1.0.4/Modula-1.0.4-arm64.dmg";
+  const winDownloadUrl = "https://github.com/MananDua28/Modula/releases/download/v1.0.4/Modula-Setup-1.0.4.exe";
 
   if (isWindows) {
     // Windows visitor: prioritize Windows setup installer

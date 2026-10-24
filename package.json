@@ -1,7 +1,7 @@
 {
   "name": "modula",
   "productName": "Modula",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Minimalist Canvas LMS module manager, offline downloader, and real-time sync hub.",
   "main": "src/main/main.js",
   "scripts": {
