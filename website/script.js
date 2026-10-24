@@ -143,7 +143,7 @@ function initCopyCommand() {
     const cmd = "xattr -cr /Applications/Modula.app";
     try {
       await navigator.clipboard.writeText(cmd);
-      copyText.textContent = "✓ Copied!";
+      copyText.textContent = "Copied to clipboard";
       copyBtn.style.borderColor = "#10b981";
       copyBtn.style.color = "#10b981";
       setTimeout(() => {
@@ -281,7 +281,7 @@ function initContactForm() {
       });
 
       if (response.ok) {
-        showAlert('✓ Thank you! Your report has been submitted. We will review it and follow up via email if needed.', 'success');
+        showAlert('Thank you! Your report has been submitted. We will review it and follow up via email if needed.', 'success');
         form.reset();
       } else {
         const errText = await response.text();

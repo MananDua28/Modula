@@ -504,12 +504,13 @@ body.theme-light .moon-icon { display: block; }
 .meta-item {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
-.meta-item span {
+.meta-item svg {
   color: #10b981;
-  font-weight: 700;
+  stroke: #10b981;
+  flex-shrink: 0;
 }
 
 .meta-separator {
@@ -1214,8 +1215,14 @@ body.theme-light .moon-icon { display: block; }
 
 .vt-check {
   color: #10b981;
-  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-right: 8px;
+}
+
+.vt-check svg {
+  stroke: #10b981;
 }
 
 .vt-engine-name {
@@ -2378,9 +2385,19 @@ kbd {
   gap: 12px;
 }
 .spotlight-check {
-  font-size: 16px;
-  line-height: 1.4;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--color-canvas-red-soft);
+  color: var(--color-canvas-red);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  margin-top: 1px;
+}
+.spotlight-check svg {
+  stroke: var(--color-canvas-red);
 }
 .spotlight-point strong {
   display: block;

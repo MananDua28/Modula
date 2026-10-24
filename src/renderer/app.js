@@ -950,7 +950,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const result = await window.modula.verifyStudentOtp(pendingVerificationEmail, token);
         if (result.success) {
           elements.onboardingModal.classList.add('hidden');
-          showToast(`🎉 Student identity verified! Welcome, ${result.email}`);
+          showToast(`Student identity verified! Welcome, ${result.email}`);
           await loadConfig();
 
           // If Canvas credentials are not set up yet, open settings for seamless setup
@@ -1144,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               elements.feedbackSubmitBtn.disabled = false;
               elements.feedbackSubmitText.textContent = 'Send Feedback';
               elements.feedbackTextInput.disabled = false;
-              showToast('Feedback sent! Thank you ❤️');
+              showToast('Feedback sent! Thank you.');
             }, 1800);
           } else {
             showFeedbackAlert(res.error || 'Failed to send feedback. Please try again.', 'error');
