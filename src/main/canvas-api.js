@@ -509,6 +509,37 @@ class CanvasAPI {
     }
   }
 
+  static async getCourseAssignments(baseUrl, token, courseId) {
+    try {
+      const cleanUrl = this.cleanBaseUrl(baseUrl);
+      const assignments = await this.getPaginated(baseUrl, `courses/${courseId}/assignments`, token, {
+        'order_by': 'due_at'
+      });
+
+      if (!Array.isArray(assignments)) return [];
+
+      return assignments.map((a, idx) => ({
+        id: `res_assignment_${a.id}`,
+        title: a.name || 'Untitled Assignment',
+        type: 'Assignment',
+        position: idx + 1,
+        indent: 0,
+        url: a.url || `${cleanUrl}/api/v1/courses/${courseId}/assignments/${a.id}`,
+        contentId: a.id,
+        htmlUrl: a.html_url || `${cleanUrl}/courses/${courseId}/assignments/${a.id}`,
+        contentDetails: {
+          due_at: a.due_at,
+          unlock_at: a.unlock_at,
+          lock_at: a.lock_at,
+          points_possible: a.points_possible
+        }
+      }));
+    } catch (err) {
+      console.warn(`Could not fetch assignments for course ${courseId}:`, err.message);
+      return [];
+    }
+  }
+
   static async getModules(baseUrl, token, courseId) {
     let nativeModules = [];
     try {
@@ -559,8 +590,24 @@ class CanvasAPI {
       });
     }
 
-    // Combine: Panopto Recordings + Resource Modules + native modules
-    const allModules = [...panoptoModules, ...resourceModules, ...nativeModules];
+    // Discover Official Course Assignments (Upcoming & Active)
+    const assignmentItems = await this.getCourseAssignments(baseUrl, token, courseId);
+    const assignmentModules = [];
+    if (assignmentItems.length > 0) {
+      assignmentModules.push({
+        id: `assignments_${courseId}`,
+        name: 'Assignments',
+        position: 0,
+        itemsCount: assignmentItems.length,
+        state: 'active',
+        isResourceModule: true,
+        isAssignmentModule: true,
+        items: assignmentItems
+      });
+    }
+
+    // Combine: Panopto Recordings + Assignments + Resource Modules + native modules
+    const allModules = [...panoptoModules, ...assignmentModules, ...resourceModules, ...nativeModules];
 
     // Re-index positions
     allModules.forEach((m, idx) => {

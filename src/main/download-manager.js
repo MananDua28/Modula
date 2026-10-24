@@ -1099,7 +1099,7 @@ class DownloadManager {
         });
 
       } else if (item.type === 'Assignment') {
-        const assignmentId = item.contentId;
+        const assignmentId = item.contentId || (item.id && String(item.id).startsWith('res_assignment_') ? item.id.replace('res_assignment_', '') : item.id);
         const aData = await CanvasAPI.getAssignmentDetails(baseUrl, token, course.id, assignmentId);
         const title = this.sanitize(aData.name || item.title || 'assignment');
 
@@ -1207,21 +1207,21 @@ class DownloadManager {
         }
 
         const dueAt = aData.due_at ? new Date(aData.due_at).toLocaleString() : 'None';
-        const points = aData.points_possible || 'Unspecified';
+        const points = aData.points_possible !== undefined && aData.points_possible !== null ? `${aData.points_possible}` : 'Unspecified';
         const subTypes = (aData.submission_types || []).join(', ') || 'online';
 
         // 5. Construct Markdown with offline files list and complete rubric
         const mdLines = [
-          `# ${aData.name}`,
+          `# ${aData.name || title}`,
           ``,
           `- **Due Date:** ${dueAt}`,
-          `- **Points / Weight:** ${points}`,
+          `- **Points / Weight:** ${points} pts`,
           `- **Submission Types:** ${subTypes}`,
           `- **Folder Location:** \`./${title}\``,
           ``,
           `## Instructions & Requirements`,
           ``,
-          mdDesc,
+          mdDesc || '*No description provided yet by instructor or assignment is locked until release date.*',
           ``
         ];
 
@@ -1264,9 +1264,215 @@ class DownloadManager {
         }
         fs.writeFileSync(mdPath, rootContent, 'utf8');
 
+        // 7. Generate Standalone Offline HTML File
+        let folderHtmlBody = rawDesc || '';
+        let rootHtmlBody = rawDesc || '';
+        for (const [onlineUrl, localRel] of urlToLocalMap.entries()) {
+          folderHtmlBody = folderHtmlBody.split(onlineUrl).join(localRel);
+          rootHtmlBody = rootHtmlBody.split(onlineUrl).join(`./${encodeURIComponent(title)}/${localRel.replace(/^\.\//, '')}`);
+        }
+
+        const buildAssignmentHtmlDocument = (bodyContent, templatePrefix) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${this.escapeHtml(aData.name || title)}</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-heading: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --canvas-red: #e02424;
+      --tag-bg: #21262d;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f8fa;
+        --card-bg: #ffffff;
+        --border: #d0d7de;
+        --text: #24292f;
+        --text-heading: #1f2328;
+        --text-muted: #656d76;
+        --accent: #0969da;
+        --tag-bg: #eaeef2;
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 32px 20px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      margin: 0 0 14px 0;
+      color: var(--text-heading);
+      font-size: 26px;
+      font-weight: 700;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .meta-card {
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .meta-card .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .meta-card .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-heading);
+    }
+    .btn-canvas {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e02424;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 16px;
+    }
+    .content {
+      font-size: 15px;
+      color: var(--text);
+    }
+    .content h1, .content h2, .content h3, .content h4 {
+      color: var(--text-heading);
+      margin-top: 24px;
+      margin-bottom: 10px;
+    }
+    .content a { color: var(--accent); }
+    .content img { max-width: 100%; border-radius: 8px; }
+    .content pre { background: var(--tag-bg); padding: 14px; border-radius: 8px; overflow-x: auto; }
+    .content code { background: var(--tag-bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    .files-box {
+      margin-top: 28px;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 22px;
+    }
+    .files-box h3 { margin: 0 0 12px 0; font-size: 16px; color: var(--text-heading); }
+    .files-list { list-style: none; padding: 0; margin: 0; }
+    .files-list li { margin: 8px 0; }
+    .files-list a { color: var(--accent); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>${this.escapeHtml(aData.name || title)}</h1>
+      <div class="meta-grid">
+        <div class="meta-card">
+          <div class="label">Due Date</div>
+          <div class="value">${dueAt}</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Points Possible</div>
+          <div class="value">${points} pts</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Submission Type</div>
+          <div class="value">${this.escapeHtml(subTypes)}</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Allowed Attempts</div>
+          <div class="value">${aData.allowed_attempts ? aData.allowed_attempts : 'Unlimited'}</div>
+        </div>
+      </div>
+      ${aData.html_url ? `<a class="btn-canvas" href="${aData.html_url}" target="_blank" rel="noopener noreferrer">↗ Open & Submit in Canvas</a>` : ''}
+    </div>
+    <div class="content">
+      ${bodyContent || '<p><em>No description provided yet by instructor or assignment is locked until release date.</em></p>'}
+    </div>
+    ${downloadedTemplates.length > 0 ? `
+      <div class="files-box">
+        <h3>Downloaded Templates & Files (Offline Access)</h3>
+        <ul class="files-list">
+          ${[...new Set(downloadedTemplates)].map(dt => `
+            <li>
+              <a href="${templatePrefix}${encodeURIComponent(dt)}" download>
+                📄 ${this.escapeHtml(dt)}
+              </a>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    ` : ''}
+    ${(Array.isArray(aData.rubric) && aData.rubric.length > 0) ? `
+      <div style="margin-top: 32px;">
+        <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 8px;">Marking Rubric & Assessment Criteria</h3>
+        <table style="width:100%; border-collapse: collapse; margin-top: 12px;">
+          <thead>
+            <tr style="background: var(--tag-bg); text-align: left;">
+              <th style="padding: 10px; border: 1px solid var(--border);">Criterion</th>
+              <th style="padding: 10px; border: 1px solid var(--border); width: 90px;">Points</th>
+              <th style="padding: 10px; border: 1px solid var(--border);">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${aData.rubric.map(c => `
+              <tr>
+                <td style="padding: 10px; border: 1px solid var(--border); font-weight: 600;">${this.escapeHtml(c.description || '')}</td>
+                <td style="padding: 10px; border: 1px solid var(--border); color: #3fb950; font-weight: 600;">${c.points !== undefined ? `${c.points} pts` : ''}</td>
+                <td style="padding: 10px; border: 1px solid var(--border);">${this.escapeHtml(c.long_description || '')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : ''}
+  </div>
+</body>
+</html>`;
+
+        const folderHtml = buildAssignmentHtmlDocument(folderHtmlBody, './');
+        const rootHtml = buildAssignmentHtmlDocument(rootHtmlBody, `./${encodeURIComponent(title)}/`);
+
+        fs.writeFileSync(path.join(assignmentDir, 'index.html'), folderHtml, 'utf8');
+        fs.writeFileSync(path.join(assignmentDir, `${title}.html`), folderHtml, 'utf8');
+        const htmlPath = path.join(targetDir, `${title}.html`);
+        fs.writeFileSync(htmlPath, rootHtml, 'utf8');
+
         this.configStore.recordDownload(item.id, {
-          localPath: mdPath,
-          size: Buffer.byteLength(fullContent),
+          localPath: htmlPath,
+          size: Buffer.byteLength(fullContent) + Buffer.byteLength(rootHtml),
           title: item.title,
           courseId: course.id,
           moduleId: module.id

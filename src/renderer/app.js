@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       totalItems += (module.items || []).length;
       const isNewModule = state.newModules.has(module.id);
-      const isCollapsed = query ? false : (!isNewModule && moduleIdx > 0 && !module.isResourceModule);
+      const isCollapsed = query ? false : (!isNewModule && moduleIdx > 0 && !module.isResourceModule && !module.isAssignmentModule && !module.isPanoptoModule);
       const moduleCard = createModuleCard(module, items, moduleIdx + 1, isCollapsed);
       elements.modulesContainer.appendChild(moduleCard);
     });
@@ -472,7 +472,16 @@ document.addEventListener('DOMContentLoaded', async () => {
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
         <span class="module-title">${escapeHtml(module.name)}</span>
-        ${module.isResourceModule ? '<span class="module-badge" style="background: rgba(224, 36, 36, 0.15); color: var(--color-canvas-red); border: 1px solid rgba(224, 36, 36, 0.3);">Course Home Resources</span>' : ''}
+        ${module.isAssignmentModule
+          ? '<span class="module-badge" style="background: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.3);">Course Assignments</span>'
+          : (module.isPanoptoModule
+            ? '<span class="module-badge" style="background: rgba(88, 166, 255, 0.15); color: #58a6ff; border: 1px solid rgba(88, 166, 255, 0.3);">Lecture Videos</span>'
+            : (module.isResourceModule
+              ? '<span class="module-badge" style="background: rgba(224, 36, 36, 0.15); color: var(--color-canvas-red); border: 1px solid rgba(224, 36, 36, 0.3);">Course Resources</span>'
+              : ''
+            )
+          )
+        }
         ${isNewModule ? '<span class="module-badge badge-new">NEW</span>' : ''}
         ${isFullyDownloaded ? '<span class="module-badge badge-done">Downloaded</span>' : `<span class="module-badge">${items.length} items</span>`}
       </div>
@@ -567,7 +576,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${isNew ? '<span class="badge-tag-new">NEW</span>' : ''}
             <span>${isPanoptoVideo ? 'Lecture Video (MP4)' : item.type}</span>
             ${sizeStr ? `<span>· ${sizeStr}</span>` : ''}
-            ${item.contentDetails && item.contentDetails.due_at ? `<span>· Due ${new Date(item.contentDetails.due_at).toLocaleDateString()}</span>` : ''}
+            ${item.contentDetails && item.contentDetails.points_possible !== undefined && item.contentDetails.points_possible !== null ? `<span>· ${item.contentDetails.points_possible} pts</span>` : ''}
+            ${item.contentDetails && item.contentDetails.due_at ? `<span>· Due ${new Date(item.contentDetails.due_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>` : ''}
           </div>
         </div>
       </div>
@@ -693,7 +703,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${isNew ? '<span class="badge-tag-new">NEW</span>' : ''}
             <span>${isPanoptoVideo ? 'Lecture Video (MP4)' : it.type}</span>
             ${sizeStr ? `<span>· ${sizeStr}</span>` : ''}
-            ${it.contentDetails && it.contentDetails.due_at ? `<span>· Due ${new Date(it.contentDetails.due_at).toLocaleDateString()}</span>` : ''}
+            ${it.contentDetails && it.contentDetails.points_possible !== undefined && it.contentDetails.points_possible !== null ? `<span>· ${it.contentDetails.points_possible} pts</span>` : ''}
+            ${it.contentDetails && it.contentDetails.due_at ? `<span>· Due ${new Date(it.contentDetails.due_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>` : ''}
           `;
         }
         break;
