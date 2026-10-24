@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCopyCommand();
   initSecurityTabs();
   initDownloadTracking();
+  initFaqAccordion();
 });
 
 // Theme Management
@@ -208,4 +209,21 @@ function initSecurityTabs() {
     switchTab('macos');
   }
 }
+
+// FAQ Accordion
+function initFaqAccordion() {
+  const faqItems = document.querySelectorAll('.faq-item');
+  faqItems.forEach(item => {
+    const questionBtn = item.querySelector('.faq-question');
+    if (!questionBtn) return;
+    questionBtn.addEventListener('click', () => {
+      const isActive = item.classList.contains('active');
+      faqItems.forEach(other => other.classList.remove('active'));
+      if (!isActive) {
+        item.classList.add('active');
+      }
+    });
+  });
+}
+
 

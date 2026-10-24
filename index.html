@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Modula — Minimalist Canvas LMS Sync & Offline Study Hub</title>
-  <meta name="description" content="The minimal, high-performance desktop application for students to sync, browse, and download university Canvas courses offline. Available for macOS and Windows.">
+  <title>Modula — Minimalist Canvas LMS Sync, Panopto MP4 Downloader & Offline Study Hub</title>
+  <meta name="description" content="The minimalist desktop application for university students. Download progressive Panopto MP4 lecture recordings, batch-download Canvas modules, and organize coursework offline. For macOS and Windows.">
   <link rel="icon" type="image/png" href="assets/icon.png">
   <link rel="stylesheet" href="styles.css">
   <!-- Fonts -->
@@ -42,10 +42,11 @@
 
       <!-- Desktop Navigation Links -->
       <nav class="nav-links">
+        <a href="#problem">The Problem</a>
         <a href="#features">Features</a>
-        <a href="#tutorial">How It Works</a>
-        <a href="#privacy">Privacy</a>
-        <a href="#security">Security &amp; Setup</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#security">Security</a>
+        <a href="#faq">FAQ</a>
         <a href="#downloads">Downloads</a>
       </nav>
 
@@ -80,10 +81,11 @@
     <div id="mobileDrawer" class="mobile-drawer" aria-hidden="true">
       <div class="mobile-drawer-content">
         <nav class="mobile-nav-links">
+          <a href="#problem" class="mobile-nav-item">The Problem</a>
           <a href="#features" class="mobile-nav-item">Features</a>
-          <a href="#tutorial" class="mobile-nav-item">How It Works</a>
-          <a href="#privacy" class="mobile-nav-item">Privacy Guarantee</a>
-          <a href="#security" class="mobile-nav-item">Security &amp; Setup</a>
+          <a href="#how-it-works" class="mobile-nav-item">How It Works</a>
+          <a href="#security" class="mobile-nav-item">Security &amp; Privacy</a>
+          <a href="#faq" class="mobile-nav-item">FAQ</a>
           <a href="#downloads" class="mobile-nav-item">Direct Downloads</a>
         </nav>
         <div class="mobile-drawer-cta">
@@ -95,7 +97,7 @@
             </svg>
             <span>Download Modula Free</span>
           </a>
-          <div class="mobile-drawer-meta">v1.0.4 Stable · macOS & Windows</div>
+          <div class="mobile-drawer-meta">v1.0.4 Stable · macOS &amp; Windows</div>
         </div>
       </div>
     </div>
@@ -106,18 +108,18 @@
     <div class="container hero-container">
       <div class="hero-pill">
         <span class="pill-dot"></span>
-        <span class="pill-tag">v1.0.4 Stable</span>
+        <span class="pill-tag">v1.0.4 Release</span>
         <span class="pill-divider">·</span>
-        <span class="pill-audience">Built for Students & Researchers</span>
+        <span class="pill-audience">Panopto MP4 Downloads &amp; Assignments Hub</span>
       </div>
 
       <h1 class="hero-title">
-        Your entire Canvas semester.<br>
-        <span class="text-gradient">Offline in seconds.</span>
+        Stop fighting slow Canvas tabs.<br>
+        <span class="text-gradient">Your entire semester, offline in seconds.</span>
       </h1>
 
       <p class="hero-subtitle">
-        Modula is a distraction-free desktop app that connects to your university Canvas with a single API token. Auto-sync lecture slides, download full modules, and archive assignment templates offline.
+        Modula is the minimalist desktop study app for university students. Download progressive 1080p Panopto lecture recordings, batch-download weekly modules, and organize assignment briefs with templates—structured into clean folders right on your computer.
       </p>
 
       <div class="hero-cta-group">
@@ -143,15 +145,17 @@
 
       <div class="hero-mac-note">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        <span><strong>First time opening on Mac?</strong> If prompted on first launch, go to <strong>System Settings → Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</span>
+        <span><strong>First time opening on Mac?</strong> If prompted on launch, go to <strong>System Settings → Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</span>
       </div>
 
       <div class="hero-meta">
-        <div class="meta-item"><span>✓</span> 100% Free & Open Source</div>
+        <div class="meta-item"><span>✓</span> Real Panopto MP4s</div>
         <div class="meta-separator">·</div>
-        <div class="meta-item"><span>✓</span> Direct University Connection</div>
+        <div class="meta-item"><span>✓</span> 1-Click Course Downloads</div>
         <div class="meta-separator">·</div>
-        <div class="meta-item"><span>✓</span> macOS & Windows 10/11</div>
+        <div class="meta-item"><span>✓</span> Assignments &amp; Due Dates</div>
+        <div class="meta-separator">·</div>
+        <div class="meta-item"><span>✓</span> 100% Free &amp; Open Source</div>
       </div>
 
       <!-- App Interface Interactive Showcase -->
@@ -162,12 +166,12 @@
             <span class="traffic-yellow"></span>
             <span class="traffic-green"></span>
           </div>
-          <div class="window-title">Modula — Individual Engineering Projects (04 38291)</div>
+          <div class="window-title">Modula — LH/LM Advanced Networking (04 90236)</div>
           <div class="window-spacer"></div>
         </div>
 
         <div class="mockup-body">
-          <!-- Sidebar (Hidden on mobile) -->
+          <!-- Sidebar -->
           <div class="mockup-sidebar">
             <div class="mockup-sidebar-header">
               <div class="mockup-brand">
@@ -180,20 +184,20 @@
             <div class="mockup-courses">
               <div class="mockup-label">ENROLLED COURSES</div>
               <div class="mockup-course-item active">
-                <span class="mockup-code">04 38291</span>
-                <span class="mockup-course-title">Individual Engineering Projects</span>
+                <span class="mockup-code">04 90236</span>
+                <span class="mockup-course-title">LH/LM Advanced Networking</span>
               </div>
               <div class="mockup-course-item">
                 <span class="mockup-code">04 31920</span>
-                <span class="mockup-course-title">Advanced Control Systems</span>
+                <span class="mockup-course-title">Advanced Computer Systems</span>
               </div>
               <div class="mockup-course-item">
                 <span class="mockup-code">04 33019</span>
-                <span class="mockup-course-title">Robotics & Autonomous Systems</span>
+                <span class="mockup-course-title">Software Engineering &amp; Arch</span>
               </div>
               <div class="mockup-course-item">
                 <span class="mockup-code">04 30982</span>
-                <span class="mockup-course-title">Finite Element Analysis</span>
+                <span class="mockup-course-title">Individual Project / Dissertation</span>
               </div>
             </div>
 
@@ -201,7 +205,7 @@
               <div class="mockup-avatar">M</div>
               <div class="mockup-user">
                 <div class="mockup-name">Manan Dua</div>
-                <div class="mockup-status">Connected · Birmingham</div>
+                <div class="mockup-status">Connected · University of Birmingham</div>
               </div>
             </div>
           </div>
@@ -210,76 +214,227 @@
           <div class="mockup-main">
             <div class="mockup-topbar">
               <div class="mockup-heading">
-                <h2>Individual Engineering Projects</h2>
-                <span class="mockup-sub">11 Modules · 38 Items Available</span>
+                <h2>LH/LM Advanced Networking</h2>
+                <span class="mockup-sub">6 Modules · 57 Items Available</span>
               </div>
-              <div class="mockup-sync-pill">
-                <span class="mockup-dot"></span>
-                <span>Auto-Synced</span>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="mockup-sync-pill">
+                  <span class="mockup-dot"></span>
+                  <span>Synced</span>
+                </div>
+                <button class="btn-micro" style="background: var(--color-canvas-red); color: #fff;">Download All Modules</button>
               </div>
             </div>
 
             <!-- Modules List Preview -->
             <div class="mockup-modules">
-              <!-- Module 1 (Expanded) -->
+              <!-- Module 1: Panopto Lecture Recordings -->
               <div class="mockup-card">
                 <div class="mockup-card-header">
                   <div class="mockup-card-left">
                     <svg class="chevron-down" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    <strong>ABOUT YOUR MODULE</strong>
-                    <span class="badge badge-green">Downloaded</span>
+                    <strong>Panopto Lecture Recordings (Current Semester)</strong>
+                    <span class="badge" style="background: rgba(88, 166, 255, 0.15); color: #58a6ff; border: 1px solid rgba(88, 166, 255, 0.3);">Lecture Videos</span>
+                    <span class="badge badge-green">8 items</span>
                   </div>
                   <button class="btn-micro">Download Module</button>
                 </div>
                 <div class="mockup-card-items">
                   <div class="mockup-item-row">
                     <div class="item-info">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                       <div class="item-details">
-                        <div class="item-name">Welcome to Individual Engineering Projects</div>
-                        <div class="item-size">Page · 1.5 KB</div>
+                        <div class="item-name">LH Advanced Networking : LAW-LT1 (303) : 29 Sep 2026 14:01</div>
+                        <div class="item-size">Lecture Video (MP4) · 136.4 MB</div>
                       </div>
                     </div>
-                    <span class="btn-micro-ghost">Open</span>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                      <span class="btn-micro-ghost">▶ Watch</span>
+                      <span class="btn-micro-ghost" style="padding: 3px 6px;">📁</span>
+                    </div>
                   </div>
                   <div class="mockup-item-row">
                     <div class="item-info">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                       <div class="item-details">
-                        <div class="item-name">Module Handbook & Assessment Scheme 2026-27</div>
-                        <div class="item-size">PDF · 4.2 MB</div>
+                        <div class="item-name">LH Advanced Networking : LAW-LT1 (303) : 20 Oct 2026 13:58</div>
+                        <div class="item-size">Lecture Video (MP4)</div>
                       </div>
                     </div>
-                    <span class="btn-micro-ghost">Open</span>
+                    <span class="btn-micro">Download</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Module 2 (Collapsed with NEW badge) -->
-              <div class="mockup-card collapsed">
+              <!-- Module 2: Assignments -->
+              <div class="mockup-card">
                 <div class="mockup-card-header">
                   <div class="mockup-card-left">
-                    <svg class="chevron-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    <strong>Week 1: September 28th — Research Plan</strong>
-                    <span class="badge badge-red">NEW SLIDES</span>
+                    <svg class="chevron-down" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    <strong>Assignments</strong>
+                    <span class="badge" style="background: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.3);">Course Assignments</span>
+                    <span class="badge badge-subtle">2 items</span>
                   </div>
                   <button class="btn-micro">Download Module</button>
                 </div>
+                <div class="mockup-card-items">
+                  <div class="mockup-item-row">
+                    <div class="item-info">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                      <div class="item-details">
+                        <div class="item-name">Wireshark Basics</div>
+                        <div class="item-size">Assignment · 20 pts · Due Oct 27, 20:00 · 8.4 MB</div>
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                      <span class="btn-micro-ghost">Open</span>
+                      <span class="btn-micro-ghost" style="padding: 3px 6px;">📁</span>
+                    </div>
+                  </div>
+                  <div class="mockup-item-row">
+                    <div class="item-info">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                      <div class="item-details">
+                        <div class="item-name">TCP Dynamics</div>
+                        <div class="item-size">Assignment · 20 pts · Due Nov 30, 20:00</div>
+                      </div>
+                    </div>
+                    <span class="btn-micro">Download</span>
+                  </div>
+                </div>
               </div>
 
-              <!-- Module 3 (Collapsed) -->
+              <!-- Module 3: Week 1 Lecture Slides -->
               <div class="mockup-card collapsed">
                 <div class="mockup-card-header">
                   <div class="mockup-card-left">
                     <svg class="chevron-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    <strong>Preliminary Report Templates & Rubrics</strong>
-                    <span class="badge badge-subtle">4 Items</span>
+                    <strong>Week 1: Transport Protocols (TCP &amp; UDP)</strong>
+                    <span class="badge badge-red">NEW SLIDES</span>
                   </div>
                   <button class="btn-micro">Download Module</button>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Institutions Supported Banner -->
+  <div class="uni-strip">
+    <div class="container">
+      <div class="uni-strip-title">Seamlessly connects to any university Canvas portal</div>
+      <div class="uni-badges">
+        <span class="uni-pill">🎓 University of Birmingham</span>
+        <span class="uni-pill">🎓 University of Oxford</span>
+        <span class="uni-pill">🎓 University of Manchester</span>
+        <span class="uni-pill">🎓 University College London (UCL)</span>
+        <span class="uni-pill">🎓 University of Melbourne</span>
+        <span class="uni-pill">🌐 Any Custom Canvas Domain</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- The Everyday Struggle Section -->
+  <section id="problem" class="section problem-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">THE DAILY STUDENT FRUSTRATION</span>
+        <h2 class="section-title">Why studying on Canvas web slows you down</h2>
+        <p class="section-desc">Canvas was designed in 2011 for administration and grading—not for students trying to study, download lecture recordings, and revise offline with focus in 2026.</p>
+      </div>
+
+      <div class="contrast-grid">
+        <!-- Left: The Canvas Nightmare -->
+        <div class="contrast-card problem-card">
+          <div class="contrast-header">
+            <span class="contrast-title">The Canvas Web Nightmare</span>
+            <span class="contrast-tag problem-tag">Slow &amp; Clunky</span>
+          </div>
+          <ul class="contrast-list">
+            <li class="contrast-item">
+              <span class="contrast-icon cross">✕</span>
+              <div>
+                <strong>Endless Click Fatigue</strong>
+                Reviewing 10 weeks of material means clicking 50 separate links, waiting for sluggish in-browser PDF previews, and saving files one by one.
+              </div>
+            </li>
+            <li class="contrast-item">
+              <span class="contrast-icon cross">✕</span>
+              <div>
+                <strong>Panopto Video Lock-In</strong>
+                Panopto recordings have zero download buttons on Canvas. You can't watch on trains, flights, or when campus Wi-Fi drops before a tutorial.
+              </div>
+            </li>
+            <li class="contrast-item">
+              <span class="contrast-icon cross">✕</span>
+              <div>
+                <strong>Constant 2FA Interruptions</strong>
+                In the middle of focused library revision, your web session expires and demands your phone for DUO Mobile or Microsoft Authenticator.
+              </div>
+            </li>
+            <li class="contrast-item">
+              <span class="contrast-icon cross">✕</span>
+              <div>
+                <strong>Buried Coursework &amp; Lost Rubrics</strong>
+                Deadlines and starter code are scattered across syllabus text. Downloaded templates end up as an unorganized mess in your generic Downloads folder.
+              </div>
+            </li>
+            <li class="contrast-item">
+              <span class="contrast-icon cross">✕</span>
+              <div>
+                <strong>Silent Uploads &amp; Outdated Slides</strong>
+                Professors upload revised slides at midnight without sending announcements. You only find out after studying the wrong version.
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right: The Modula Way -->
+        <div class="contrast-card solution-card">
+          <div class="contrast-header">
+            <span class="contrast-title">The Modula Way</span>
+            <span class="contrast-tag solution-tag">Native &amp; 100% Offline</span>
+          </div>
+          <ul class="contrast-list">
+            <li class="contrast-item">
+              <span class="contrast-icon check">✓</span>
+              <div>
+                <strong>1-Click Course &amp; Module Downloads</strong>
+                Hit "Download All Modules" to pull an entire semester's slides, notes, and past papers in seconds, neatly sorted into numbered directories.
+              </div>
+            </li>
+            <li class="contrast-item">
+              <span class="contrast-icon check">✓</span>
+              <div>
+                <strong>Progressive 1080p Panopto MP4 Videos</strong>
+                Hooks directly into Panopto to download genuine progressive .mp4 files. Watch offline in QuickTime or VLC at 1.5x/2x with zero buffering.
+              </div>
+            </li>
+            <li class="contrast-item">
+              <span class="contrast-icon check">✓</span>
+              <div>
+                <strong>Permanent, Interruption-Free Access</strong>
+                One-time setup with your Canvas API token. Modula stays permanently authenticated on your machine with zero 2FA timeouts.
+              </div>
+            </li>
+            <li class="contrast-item">
+              <span class="contrast-icon check">✓</span>
+              <div>
+                <strong>Centralized Coursework &amp; Offline Briefs</strong>
+                Dedicated Assignments module highlights deadlines and points, auto-downloads attached templates, and creates an offline HTML brief.
+              </div>
+            </li>
+            <li class="contrast-item">
+              <span class="contrast-icon check">✓</span>
+              <div>
+                <strong>Silent Auto-Sync &amp; New Slide Alerts</strong>
+                Runs in the background to detect new lecture uploads. Tags updated files with vibrant red NEW badges and sends desktop notifications.
+              </div>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
@@ -289,29 +444,30 @@
   <section id="features" class="section">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">ENGINEERED FOR PRODUCTIVITY</span>
-        <h2 class="section-title">Built to replace slow web tabs with native speed</h2>
-        <p class="section-desc">Designed specifically for university students who need fast, offline, and organized access to lecture materials.</p>
+        <span class="section-tag">EVERY FEATURE YOU NEED</span>
+        <h2 class="section-title">Engineered for academic focus &amp; offline speed</h2>
+        <p class="section-desc">Six core capabilities built specifically for how university students study and revise.</p>
       </div>
 
       <div class="bento-grid">
-        <!-- Bento 1 -->
+        <!-- Feature 1: Panopto MP4 Downloader -->
         <div class="bento-card bento-wide">
           <div class="bento-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
           </div>
-          <h3>Real-Time Canvas Auto-Sync</h3>
-          <p>Modula runs silent background checks to detect when professors upload updated lecture slides, assignment briefs, or new modules. You receive instant desktop notifications with red NEW tags.</p>
+          <h3>Progressive Panopto MP4 Video Downloader</h3>
+          <p>The most requested feature by university students. Modula automatically resolves your course's Panopto session and extracts direct high-definition progressive .mp4 streams from AWS CloudFront. Watch lectures on the train, in coffee shops, or with spotty Wi-Fi in QuickTime, VLC, or your favorite media player at 1.5x/2x speed without buffering.</p>
           <div class="bento-badge-row">
-            <span class="tag">5 min to 1 hr intervals</span>
-            <span class="tag">Zero CPU footprint</span>
-            <span class="tag">Delta change tracking</span>
+            <span class="tag">Progressive 1080p / 720p</span>
+            <span class="tag">QuickTime &amp; VLC Ready</span>
+            <span class="tag">Zero Web Buffering</span>
+            <span class="tag">Offline Lecture Archive</span>
           </div>
         </div>
 
-        <!-- Bento 2 -->
+        <!-- Feature 2: 1-Click Batch Downloader -->
         <div class="bento-card">
           <div class="bento-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -320,11 +476,23 @@
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </div>
-          <h3>One-Click Bulk Downloads</h3>
-          <p>Download the entire semester's course materials with one click, or grab an individual week's module with organized numbered folders.</p>
+          <h3>1-Click Semester &amp; Module Archiving</h3>
+          <p>Download the entire semester's course materials in one click, or grab an individual week's module. Automatically organizes files into clean numbered folders: <code>01_Panopto Recordings/</code>, <code>02_Assignments/</code>, <code>03_Week 1/</code>.</p>
         </div>
 
-        <!-- Bento 3 -->
+        <!-- Feature 3: Centralized Assignments -->
+        <div class="bento-card">
+          <div class="bento-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 11 12 14 22 4"></polyline>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+          </div>
+          <h3>Centralized Assignments Hub</h3>
+          <p>Discovers every active coursework assignment across all enrolled courses, even if the professor forgot to add them to modules. Clearly displays upcoming deadlines and point weights (e.g. <code>20 pts</code>) at a single glance.</p>
+        </div>
+
+        <!-- Feature 4: Offline Assignment Packages -->
         <div class="bento-card">
           <div class="bento-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -332,23 +500,22 @@
               <polyline points="14 2 14 8 20 8"></polyline>
             </svg>
           </div>
-          <h3>Offline Assignment Templates</h3>
-          <p>Scans assignment descriptions to automatically download embedded Word templates, PDF rubrics, and LaTeX guides straight to your computer.</p>
+          <h3>Offline Coursework Packages &amp; Rubrics</h3>
+          <p>Scans assignment descriptions to download embedded Word templates, PDF rubrics, and code starter files. Automatically generates a standalone offline HTML brief (<code>index.html</code>) and Markdown summary.</p>
         </div>
 
-        <!-- Bento 4 -->
+        <!-- Feature 5: Real-Time Auto-Sync -->
         <div class="bento-card">
           <div class="bento-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
             </svg>
           </div>
-          <h3>Direct Institution API</h3>
-          <p>Supports all Canvas instances: Birmingham, Oxford, Manchester, Melbourne, Canvas Free, or any custom institutional domain.</p>
+          <h3>Silent Auto-Sync &amp; Slide Alerts</h3>
+          <p>Runs periodic background checks without battery or CPU drain. When an instructor posts revised lecture slides or new exam hints, Modula tags them with a bright red <code>NEW</code> badge and native desktop notification.</p>
         </div>
 
-        <!-- Bento 5: Privacy Section with ID for navigation -->
+        <!-- Feature 6: Privacy Guarantee -->
         <div id="privacy" class="bento-card bento-wide privacy-card">
           <div class="bento-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -356,12 +523,12 @@
             </svg>
           </div>
           <h3>100% Client-Side Privacy Guarantee</h3>
-          <p>Your Canvas API token is stored securely on your local device. Modula never sends your credentials, course titles, or files to any external server. All communication happens strictly between your machine and your university.</p>
+          <p>Your Canvas API token is stored securely only on your local device. Modula never transmits your credentials, course titles, or files to any third-party server. All network communication happens strictly and directly between your computer and your university over encrypted HTTPS.</p>
           <div class="bento-badge-row">
             <span class="tag">Local Storage Only</span>
-            <span class="tag">Direct HTTPS to Canvas</span>
-            <span class="tag">No Analytics or Telemetry</span>
-            <span class="tag">Zero External Servers</span>
+            <span class="tag">Direct University HTTPS</span>
+            <span class="tag">Zero Tracking or Telemetry</span>
+            <span class="tag">100% Open Source MIT</span>
           </div>
         </div>
       </div>
@@ -369,34 +536,34 @@
   </section>
 
   <!-- Step-by-Step Setup Tutorial -->
-  <section id="tutorial" class="section tutorial-section">
+  <section id="how-it-works" class="section tutorial-section">
     <div class="container">
       <div class="section-header">
         <span class="section-tag">QUICK START GUIDE</span>
         <h2 class="section-title">Up and running in 60 seconds</h2>
-        <p class="section-desc">No complex configuration. Connect with your Canvas account and start studying offline.</p>
+        <p class="section-desc">Zero admin privileges required. Connect with your student Canvas account in 3 dead-simple steps.</p>
       </div>
 
       <div class="steps-grid">
         <div class="step-card">
           <div class="step-number">01</div>
           <h3>Generate Token in Canvas</h3>
-          <p>Log in to your university Canvas web portal, click <strong>Account</strong> in the sidebar &rarr; <strong>Settings</strong> &rarr; scroll to <strong>Approved Integrations</strong> and click <strong>+ New Access Token</strong>.</p>
-          <div class="step-hint">Give it a purpose (e.g., "Modula") and copy the generated key.</div>
+          <p>Log in to your university Canvas web portal, click <strong>Account</strong> in the sidebar &rarr; <strong>Settings</strong> &rarr; scroll down to <strong>Approved Integrations</strong> and click <strong>+ New Access Token</strong>.</p>
+          <div class="step-hint">Name it "Modula" and copy the generated key.</div>
         </div>
 
         <div class="step-card">
           <div class="step-number">02</div>
           <h3>Paste in Modula Settings</h3>
           <p>Open Modula, paste your university's Canvas URL (e.g. <code>https://canvas.bham.ac.uk</code>) and your access token into the Settings modal, then click <strong>Save &amp; Connect</strong>.</p>
-          <div class="step-hint">Select your download directory (default: <code>~/Downloads/Modula</code>).</div>
+          <div class="step-hint">Choose your download folder (default: <code>~/Downloads/Modula</code>).</div>
         </div>
 
         <div class="step-card">
           <div class="step-number">03</div>
-          <h3>Browse, Sync &amp; Download</h3>
-          <p>All your enrolled courses and modules appear instantly. Click <strong>Download Module</strong> or <strong>Download All Modules</strong> to save everything locally for exam prep.</p>
-          <div class="step-hint">Modula will continue to auto-sync new slides in the background.</div>
+          <h3>Download &amp; Study Offline</h3>
+          <p>All your enrolled courses, Panopto recordings, and assignments load instantly. Click <strong>Download Module</strong> or <strong>Download All Modules</strong> to save everything locally for exam prep.</p>
+          <div class="step-hint">Modula will silently auto-sync new slides in the background.</div>
         </div>
       </div>
     </div>
@@ -407,35 +574,8 @@
     <div class="container">
       <div class="section-header">
         <span class="section-tag">SECURITY &amp; TRANSPARENCY</span>
-        <h2 class="section-title">Verified Safe &middot; Built for Students</h2>
-        <p class="section-desc">Why macOS and Windows display first-time security warnings, how to bypass them in seconds, and third-party cryptographic proof that Modula is 100% clean.</p>
-      </div>
-
-      <!-- Developer Independence & Warning Explanation -->
-      <div class="security-card manifesto-card">
-        <div class="manifesto-header">
-          <div class="manifesto-badge">A NOTE FROM THE DEVELOPER</div>
-          <span class="manifesto-pill">Open Source &middot; Non-Profit</span>
-        </div>
-        <h3>Why do Windows &amp; Mac show warnings on first launch?</h3>
-        <p>
-          Commercial operating systems require developers to purchase expensive corporate certificates to eliminate automated security prompts:
-          <strong>Apple charges $99 every single year</strong> for an Apple Developer Program subscription, while <strong>Microsoft requires hardware-token EV Code Signing certificates that cost $300 to $500+ every year</strong>.
-        </p>
-        <p>
-          Modula is an independent, 100% free tool built by university students for university students to make Canvas course downloads frictionless. As an independent student developer, I refuse to place paywalls, collect user data, or pay hundreds of dollars every year to commercial tech giants for corporate certificates.
-        </p>
-        <div class="manifesto-alert">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <div>
-            <strong>Automated Warnings &ne; Malware:</strong>
-            Prompts such as <em>"Windows protected your PC / Unknown Publisher"</em> or <em>"Modula is damaged and can't be opened"</em> are triggered solely because the software is <strong>unsigned with a paid commercial certificate</strong>. They are not security detections.
-          </div>
-        </div>
+        <h2 class="section-title">100% Safe, Clean, and Open Source</h2>
+        <p class="section-desc">Audited by 70+ enterprise security scanners. Zero corporate telemetry, built by students for students.</p>
       </div>
 
       <!-- VirusTotal Clean Scan Card -->
@@ -496,69 +636,85 @@
           </div>
         </div>
 
-        <div class="vt-checksums">
-          <div class="checksum-row">
-            <span class="checksum-tag">Windows Setup (v1.0.4)</span>
-            <code class="checksum-code">87def4599758ebd976d14031d34b31a586cc2df034ef739c3d34340456a5d93f</code>
-          </div>
-          <div class="checksum-row">
-            <span class="checksum-tag">Windows Portable (v1.0.4)</span>
-            <code class="checksum-code">c393716b6636e8af35fb67bc7ae1efaebdec0b2b3744229e7ad8fe3819e5c244</code>
-          </div>
-          <div class="checksum-row">
-            <span class="checksum-tag">macOS DMG (v1.0.4)</span>
-            <code class="checksum-code">bfe5612eec9c94c5f57640057189c5d6e507c640d68b7174e62e7b1c5170610a</code>
-          </div>
-        </div>
-
-        <div class="vt-actions">
+        <div class="vt-actions" style="margin-top: 24px;">
           <a href="https://github.com/MananDua28/Modula" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
             </svg>
-            <span>Audit Open-Source Code</span>
-          </a>
-          <a href="https://www.virustotal.com/gui/home/upload" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <span>Scan on VirusTotal</span>
+            <span>Audit Open-Source Code on GitHub</span>
           </a>
         </div>
       </div>
 
-      <!-- Platform-Specific Step-by-Step Guides -->
+      <!-- Platform-Specific First Launch Guide -->
       <div class="os-guide-container">
         <div class="os-tabs">
-          <button id="tabWinBtn" class="os-tab-btn active" data-tab="windows" type="button">
+          <button id="tabMacBtn" class="os-tab-btn active" data-tab="macos" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 20.94c1.88-2.6 3-5.32 3-8.94a7 7 0 1 0-14 0c0 3.62 1.12 6.34 3 8.94"></path>
+              <path d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+            </svg>
+            <span>macOS First Launch Guide</span>
+          </button>
+          <button id="tabWinBtn" class="os-tab-btn" data-tab="windows" type="button">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="8" height="8"></rect>
               <rect x="13" y="3" width="8" height="8"></rect>
               <rect x="3" y="13" width="8" height="8"></rect>
               <rect x="13" y="13" width="8" height="8"></rect>
             </svg>
-            <span>Windows Installation &amp; Fixes</span>
-          </button>
-          <button id="tabMacBtn" class="os-tab-btn" data-tab="macos" type="button">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M12 20.94c1.88-2.6 3-5.32 3-8.94a7 7 0 1 0-14 0c0 3.62 1.12 6.34 3 8.94"></path>
-              <path d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
-            </svg>
-            <span>macOS Gatekeeper Guide</span>
+            <span>Windows SmartScreen Guide</span>
           </button>
         </div>
 
-        <!-- Windows Tab Content -->
-        <div id="tabWindowsContent" class="os-tab-panel active">
-          <!-- Step 1: SmartScreen Bypass -->
+        <!-- macOS Tab Content -->
+        <div id="tabMacContent" class="os-tab-panel active">
           <div class="guide-card">
             <div class="guide-card-header">
-              <span class="guide-step-tag">Step 1</span>
-              <h4>Bypassing Windows Defender SmartScreen (2 Clicks)</h4>
+              <span class="guide-step-tag">macOS Gatekeeper</span>
+              <h4>Opening Modula on Mac for the first time</h4>
             </div>
             <p class="guide-card-p">
-              When launching the installer or portable executable for the first time, Windows displays a blue prompt: <em>"Windows protected your PC — Microsoft Defender SmartScreen prevented an unrecognised app from starting."</em>
+              Because Modula is a free open-source student project built without a /yr Apple Developer certificate, macOS Gatekeeper may show <em>"Modula is damaged and can't be opened"</em> or <em>"Cannot be opened because Apple cannot check it for malicious software"</em> on first launch.
+            </p>
+
+            <div class="mac-methods-grid">
+              <!-- Method 1: System Settings -->
+              <div class="mac-method-box recommended-box">
+                <div class="solution-badge">EASIEST &middot; NO TERMINAL</div>
+                <h5>Method 1: System Settings "Open Anyway"</h5>
+                <ol class="solution-steps-list">
+                  <li>Double-click <strong>Modula.app</strong> in your Applications folder.</li>
+                  <li>When the prompt appears, open <strong>System Settings &rarr; Privacy &amp; Security</strong>.</li>
+                  <li>Scroll down to the <strong>Security</strong> section and click <strong>Open Anyway</strong>.</li>
+                </ol>
+              </div>
+
+              <!-- Method 2: Terminal Command -->
+              <div class="mac-method-box">
+                <div class="solution-badge">1-CLICK TERMINAL COMMAND</div>
+                <h5>Method 2: Remove Quarantine Flag</h5>
+                <p>Press <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <code>Terminal</code>, press Enter, and paste this one-time command:</p>
+                <div class="terminal-command-box">
+                  <code>xattr -cr /Applications/Modula.app</code>
+                  <button id="copyCommandBtn" class="btn btn-secondary btn-sm" title="Copy to clipboard" type="button">
+                    <span id="copyBtnText">Copy Command</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Windows Tab Content -->
+        <div id="tabWindowsContent" class="os-tab-panel">
+          <div class="guide-card">
+            <div class="guide-card-header">
+              <span class="guide-step-tag">Windows Defender</span>
+              <h4>Bypassing Windows SmartScreen (2 Clicks)</h4>
+            </div>
+            <p class="guide-card-p">
+              When opening for the first time on Windows 10/11, Microsoft Defender SmartScreen may display: <em>"Windows protected your PC — Microsoft Defender SmartScreen prevented an unrecognised app from starting."</em>
             </p>
             <div class="screenshots-flow">
               <div class="screenshot-box">
@@ -571,81 +727,78 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-          <!-- Windows Editions Choice -->
-          <div class="guide-card" style="margin-top: 20px;">
-            <div class="guide-card-header">
-              <span class="guide-step-tag">Format Options</span>
-              <h4>Choose Between Setup Installer or Standalone Portable</h4>
-            </div>
-            <div class="solution-grid">
-              <div class="solution-box">
-                <div class="solution-badge">STANDARD INSTALLER</div>
-                <h5>Setup Installer (.exe)</h5>
-                <p>Standard Windows installer wizard that installs Modula on your PC and automatically creates Desktop &amp; Start Menu shortcuts.</p>
-              </div>
-              <div class="solution-box recommended-box">
-                <div class="solution-badge">PORTABLE EDITION &middot; ZERO INSTALL</div>
-                <h5>Portable Standalone (.exe)</h5>
-                <p>No installer wizard required. Double-click to launch Modula instantly—can even be kept on a USB drive or in your Downloads folder.</p>
-              </div>
-            </div>
+  <!-- FAQ Section -->
+  <section id="faq" class="section faq-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">FREQUENTLY ASKED QUESTIONS</span>
+        <h2 class="section-title">Got questions? We've got answers.</h2>
+        <p class="section-desc">Everything you need to know about how Modula works with your university account.</p>
+      </div>
+
+      <div class="faq-grid">
+        <div class="faq-item active">
+          <button class="faq-question" type="button">
+            <span>Can I really download Panopto lecture recordings as real MP4 video files?</span>
+            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            Yes! While Canvas and Panopto's web interface deliberately hide download buttons from students, Modula connects directly to Panopto's delivery APIs using your authenticated course session. It extracts genuine progressive 1080p and 720p <strong>.mp4 video files</strong> directly from AWS CloudFront. You can play them in QuickTime, VLC, or Windows Media Player at 1.5x/2x speed with zero buffering.
           </div>
         </div>
 
-        <!-- macOS Tab Content -->
-        <div id="tabMacContent" class="os-tab-panel">
-          <div class="guide-card">
-            <div class="guide-card-header">
-              <span class="guide-step-tag">macOS Fix</span>
-              <h4>Bypassing macOS Gatekeeper ("Damaged / Can't be opened")</h4>
-            </div>
-            <p class="guide-card-p">
-              When downloading applications outside the Apple App Store without a $99/year Apple Developer membership, macOS places the downloaded app into quarantine and shows <em>"Modula is damaged and can't be opened"</em>.
-            </p>
+        <div class="faq-item">
+          <button class="faq-question" type="button">
+            <span>Is Modula safe? Can my university detect or ban me for using it?</span>
+            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            Modula is 100% safe and fully compliant. It connects using the <strong>official Canvas REST API</strong> that Canvas explicitly provides for students. Modula only requests materials you are already officially enrolled in, over standard encrypted HTTPS, exactly as your web browser does. It does not scrape or bypass access restrictions.
+          </div>
+        </div>
 
-            <div class="mac-methods-grid">
-              <!-- Method 1: Terminal Command -->
-              <div class="mac-method-box recommended-box">
-                <div class="solution-badge">FASTEST &middot; 1-CLICK TERMINAL COMMAND</div>
-                <h5>Method 1: Clear Quarantine via Terminal</h5>
-                <p>Open <strong>Terminal</strong> (Press <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <code>Terminal</code>, press Enter) and paste this one-time command:</p>
-                
-                <div class="terminal-command-box">
-                  <code>xattr -cr /Applications/Modula.app</code>
-                  <button id="copyCommandBtn" class="btn btn-secondary btn-sm" title="Copy to clipboard" type="button">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                    <span id="copyBtnText">Copy Command</span>
-                  </button>
-                </div>
-              </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button">
+            <span>What happens if a professor uploads new slides or coursework mid-semester?</span>
+            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            Modula has a built-in background sync engine. It periodically checks your enrolled courses for new modules, updated lecture slides, or newly published assignments. Any new material is immediately flagged with a vibrant red <strong>NEW</strong> badge in your app, and Modula can automatically download new items straight to your drive.
+          </div>
+        </div>
 
-              <!-- Method 2: Right Click Open -->
-              <div class="mac-method-box">
-                <div class="solution-badge">GUI METHOD &middot; NO TERMINAL</div>
-                <h5>Method 2: Right-Click in Finder</h5>
-                <ol class="solution-steps-list">
-                  <li>Drag <strong>Modula</strong> into your <strong>/Applications</strong> folder.</li>
-                  <li>Right-click (or hold <kbd>Control</kbd> and click) on <strong>Modula.app</strong>.</li>
-                  <li>Click <strong>Open</strong> from the contextual menu.</li>
-                  <li>In the dialog that appears, click the newly visible <strong>Open</strong> button.</li>
-                </ol>
-              </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button">
+            <span>Where are downloaded course files stored on my computer?</span>
+            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            By default, Modula organizes your files into <code>~/Downloads/Modula/</code> with a clean, numbered directory hierarchy: <code>Course Name / 01_Panopto Recordings / 02_Assignments / 03_Week 1 /</code>. You can change this destination folder at any time in Modula Settings to an external drive, USB stick, or iCloud/OneDrive folder.
+          </div>
+        </div>
 
-              <!-- Method 3: System Settings -->
-              <div class="mac-method-box">
-                <div class="solution-badge">SETTINGS METHOD</div>
-                <h5>Method 3: System Settings "Open Anyway"</h5>
-                <ol class="solution-steps-list">
-                  <li>Open <strong>System Settings</strong> &rarr; <strong>Privacy &amp; Security</strong>.</li>
-                  <li>Scroll down to the <strong>Security</strong> section.</li>
-                  <li>Under <em>"Modula was blocked"</em>, click <strong>Open Anyway</strong>.</li>
-                </ol>
-              </div>
-            </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button">
+            <span>Does Modula work with my specific university?</span>
+            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            Yes! If your university or college uses <strong>Instructure Canvas LMS</strong>, Modula works out of the box. Whether your portal is <code>canvas.bham.ac.uk</code>, <code>canvas.ox.ac.uk</code>, <code>online.manchester.ac.uk</code>, or any custom institutional Canvas URL, simply enter your institution's address in Settings.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" type="button">
+            <span>Is Modula really 100% free? Are there any hidden fees or subscriptions?</span>
+            <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            Modula is completely free and open-source under the MIT license. There are no paid tiers, no monthly subscriptions, and zero advertisements. It is an independent open-source project built for students.
           </div>
         </div>
       </div>
@@ -737,9 +890,11 @@
 
       <div class="footer-links">
         <a href="https://github.com/MananDua28/Modula" target="_blank" rel="noopener">GitHub Releases</a>
-        <a href="#tutorial">Setup Guide</a>
+        <a href="#problem">The Problem</a>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">Setup Guide</a>
         <a href="#security">Security &amp; Setup</a>
-        <a href="#privacy">Privacy</a>
+        <a href="#faq">FAQ</a>
         <a href="LICENSE">MIT License</a>
       </div>
     </div>
