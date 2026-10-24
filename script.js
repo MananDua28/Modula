@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initDownloadTracking();
   initFaqAccordion();
   initContactForm();
+  initScrollFeatures();
 });
 
 // Theme Management
@@ -310,6 +311,46 @@ function initContactForm() {
     alertBox.textContent = msg;
     alertBox.className = `contact-status-alert alert-${type}`;
     alertBox.style.display = 'block';
+  }
+}
+
+// Sticky Header Shadow on Scroll & Scroll to Top Button
+function initScrollFeatures() {
+  const navbar = document.querySelector('.navbar');
+  const scrollBtn = document.getElementById('scrollToTopBtn');
+
+  const onScroll = () => {
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+
+    // Header shadow on scroll
+    if (navbar) {
+      if (scrollY > 20) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    }
+
+    // Scroll to Top visibility
+    if (scrollBtn) {
+      if (scrollY > 400) {
+        scrollBtn.classList.add('visible');
+      } else {
+        scrollBtn.classList.remove('visible');
+      }
+    }
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  if (scrollBtn) {
+    scrollBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
   }
 }
 

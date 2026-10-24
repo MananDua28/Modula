@@ -70,6 +70,7 @@ body {
   overflow-x: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
   width: 100%;
+  padding-top: 64px; /* Offset for fixed header */
 }
 
 /* Subtle Ambient Glow & Grid */
@@ -119,18 +120,24 @@ body {
   z-index: 1;
 }
 
-/* Navigation Bar */
+/* Navigation Bar (Fixed on Scroll) */
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
+  right: 0;
   width: 100%;
   background: var(--nav-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
-  z-index: 100;
-  transition: background 0.25s ease, border-color 0.25s ease;
+  z-index: 1000;
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.navbar.scrolled {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  border-bottom-color: var(--border-bold);
 }
 
 .nav-container {
@@ -2544,5 +2551,57 @@ textarea.form-control {
   .form-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* ==========================================================================
+   Scroll to Top Floating Button
+   ========================================================================== */
+.scroll-to-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-bold);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.scroll-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scroll-to-top:hover {
+  background: var(--color-canvas-red);
+  color: #ffffff;
+  border-color: var(--color-canvas-red);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(225, 63, 43, 0.35);
+}
+
+.scroll-to-top:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .scroll-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
   }
 }
