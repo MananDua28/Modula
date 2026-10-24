@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="#downloads"><img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-000000?style=flat-square" alt="Platform"></a>
-  <a href="#downloads"><img src="https://img.shields.io/badge/Release-v1.0.0-E13F2B?style=flat-square" alt="Release"></a>
+  <a href="#downloads"><img src="https://img.shields.io/badge/Release-v1.0.4-E13F2B?style=flat-square" alt="Release"></a>
   <a href="#license"><img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License"></a>
 </p>
 
@@ -54,9 +54,9 @@ Download the latest version of Modula for your operating system:
 
 | Operating System | Download Link | Format | Architecture |
 | :--- | :--- | :--- | :--- |
-| **macOS** | [📥 **Download Modula for macOS (.dmg)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-1.0.3-arm64.dmg) | `.dmg` Package (114 MB) | Apple Silicon & Intel |
-| **Windows (Setup)** | [📥 **Download Modula Setup Installer (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Setup-1.0.3.exe) | `.exe` NSIS Installer (97.7 MB) | 64-bit x64 (Windows 10 / 11) |
-| **Windows (Portable)** | [📥 **Download Modula Portable (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.3/Modula-Portable-1.0.3.exe) | `.exe` Standalone (97.4 MB) | 64-bit x64 (No install required) |
+| **macOS** | [📥 **Download Modula for macOS (.dmg)**](https://github.com/MananDua28/Modula/releases/download/v1.0.4/Modula-1.0.4-arm64.dmg) | `.dmg` Package (114 MB) | Apple Silicon & Intel |
+| **Windows (Setup)** | [📥 **Download Modula Setup Installer (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.4/Modula-Setup-1.0.4.exe) | `.exe` NSIS Installer (97.7 MB) | 64-bit x64 (Windows 10 / 11) |
+| **Windows (Portable)** | [📥 **Download Modula Portable (.exe)**](https://github.com/MananDua28/Modula/releases/download/v1.0.4/Modula-Portable-1.0.4.exe) | `.exe` Standalone (97.4 MB) | 64-bit x64 (No install required) |
 | **All Releases** | [View GitHub Releases Archive](https://github.com/MananDua28/Modula/releases) | `.zip`, `.exe`, `.dmg` | All Platforms |
 
 > [!TIP]
