@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSecurityTabs();
   initDownloadTracking();
   initFaqAccordion();
+  initContactForm();
 });
 
 // Theme Management
@@ -99,33 +100,35 @@ function detectOSAndAdaptCTA() {
   const macDownloadUrl = "https://github.com/MananDua28/Modula/releases/download/v1.0.4/Modula-1.0.4-arm64.dmg";
   const winDownloadUrl = "https://github.com/MananDua28/Modula/releases/download/v1.0.4/Modula-Setup-1.0.4.exe";
 
+  const appleSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.89c.65-.8 1.1-1.92.97-3.04-.95.04-2.1.63-2.77 1.42-.59.68-1.11 1.78-.97 2.87 1.06.08 2.13-.54 2.77-1.25z"/></svg>`;
+  const winSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true"><path d="M0 0h11v11H0zM13 0h11v11H13zM0 13h11v11H0zM13 13h11v11H13z"/></svg>`;
+
   if (isWindows) {
     // Windows visitor: prioritize Windows setup installer
     primaryBtn.href = winDownloadUrl;
-    primaryText.textContent = "Download for Windows (.exe)";
     primaryBtn.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="8" height="8"></rect>
-        <rect x="13" y="3" width="8" height="8"></rect>
-        <rect x="3" y="13" width="8" height="8"></rect>
-        <rect x="13" y="13" width="8" height="8"></rect>
-      </svg>
-      <span>Download for Windows (.exe)</span>
+      ${winSvg}
+      <span id="primaryDownloadText">Download for Windows (.exe)</span>
     `;
 
     secondaryBtn.href = macDownloadUrl;
     secondaryBtn.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="7 10 12 15 17 10"></polyline>
-        <line x1="12" y1="15" x2="12" y2="3"></line>
-      </svg>
+      ${appleSvg}
       <span>Download for macOS (.dmg)</span>
     `;
   } else {
     // Default to macOS (or Mac visitor)
     primaryBtn.href = macDownloadUrl;
+    primaryBtn.innerHTML = `
+      ${appleSvg}
+      <span id="primaryDownloadText">Download for macOS (.dmg)</span>
+    `;
+
     secondaryBtn.href = winDownloadUrl;
+    secondaryBtn.innerHTML = `
+      ${winSvg}
+      <span>Download for Windows (.exe)</span>
+    `;
   }
 }
 
@@ -224,6 +227,82 @@ function initFaqAccordion() {
       }
     });
   });
+}
+
+// Contact & Issue Reporting Form (Connected to Supabase)
+function initContactForm() {
+  const form = document.getElementById('contactForm');
+  if (!form) return;
+
+  const submitBtn = document.getElementById('contactSubmitBtn');
+  const submitText = document.getElementById('contactSubmitText');
+  const alertBox = document.getElementById('contactStatusAlert');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('contactName')?.value.trim() || 'Anonymous';
+    const email = document.getElementById('contactEmail')?.value.trim();
+    const category = document.getElementById('contactCategory')?.value || 'General Issue';
+    const uni = document.getElementById('contactUni')?.value.trim() || 'Not specified';
+    const userMessage = document.getElementById('contactMessage')?.value.trim();
+
+    if (!email || !userMessage) {
+      showAlert('Please enter your email and a description of the issue.', 'error');
+      return;
+    }
+
+    // Set loading state
+    submitBtn.disabled = true;
+    const originalText = submitText.textContent;
+    submitText.textContent = 'Sending...';
+
+    const fullMessage = `[Category: ${category}]\n[Student: ${name}]\n[University/Domain: ${uni}]\n\n${userMessage}`;
+
+    const supabaseUrl = 'https://eaphgmvozomccqrctbst.supabase.co';
+    const supabaseKey = 'sb_publishable_IqKDQtuxViU0wqOODbwMow_JGmZFPp5';
+
+    try {
+      const response = await fetch(`${supabaseUrl}/rest/v1/feedback`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          student_email: email,
+          message: fullMessage,
+          app_version: 'web-landing-v1.0.4',
+          platform: `Web (${window.navigator.userAgent.slice(0, 100)})`,
+          device_id: 'web-contact-form'
+        })
+      });
+
+      if (response.ok) {
+        showAlert('✓ Thank you! Your report has been submitted. We will review it and follow up via email if needed.', 'success');
+        form.reset();
+      } else {
+        const errText = await response.text();
+        console.warn('Supabase submission response:', response.status, errText);
+        showAlert('Could not send automatically. Please email mdua0077@gmail.com directly.', 'error');
+      }
+    } catch (err) {
+      console.error('Contact form submission error:', err);
+      showAlert('Network error. Please check your internet connection or email mdua0077@gmail.com directly.', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitText.textContent = originalText;
+    }
+  });
+
+  function showAlert(msg, type) {
+    if (!alertBox) return;
+    alertBox.textContent = msg;
+    alertBox.className = `contact-status-alert alert-${type}`;
+    alertBox.style.display = 'block';
+  }
 }
 
 

@@ -1662,15 +1662,22 @@ kbd {
 }
 
 .dl-os-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-lg);
-  background: var(--bg-subtle);
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #0f1218;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-main);
+  color: #ffffff;
   margin-bottom: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.dl-os-icon svg {
+  fill: #ffffff;
+  color: #ffffff;
 }
 
 .download-card h3 {
@@ -2027,44 +2034,90 @@ kbd {
    New Landing Page Sections: Problem vs Solution, Institutions, FAQ
    ========================================================================== */
 
-/* Supported Institutions Strip */
+/* Supported Institutions Marquee (UK Canvas Focus) */
 .uni-strip {
-  padding: 34px 0 16px;
-  text-align: center;
+  padding: 36px 0 24px;
   border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-surface-soft, rgba(255, 255, 255, 0.015));
 }
 .uni-strip-title {
-  font-size: 11.5px;
+  text-align: center;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-subtle);
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
-.uni-badges {
+.uni-marquee {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  padding: 6px 0;
+}
+.uni-marquee-track {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  width: max-content;
+  animation: marqueeScroll 34s linear infinite;
+}
+.uni-marquee-track:hover {
+  animation-play-state: paused;
+}
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+.uni-marquee-group {
+  display: flex;
   align-items: center;
-  gap: 10px 14px;
+  gap: 14px;
+  padding-right: 14px;
 }
 .uni-pill {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text-muted);
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  padding: 7px 14px;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  white-space: nowrap;
+  user-select: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 .uni-pill:hover {
-  border-color: var(--border-bold);
+  border-color: var(--color-canvas-red);
   color: var(--text-main);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+}
+.uni-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+.uni-pill-global {
+  background: var(--bg-subtle);
+  border-color: var(--border-bold);
+  font-weight: 700;
+}
+.uni-pill-globe {
+  font-size: 16px;
+  line-height: 1;
 }
 
 /* Problem vs Solution Section */
@@ -2235,5 +2288,244 @@ kbd {
 @media (max-width: 860px) {
   .contrast-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Animation Spotlight Feature Card
+   ========================================================================== */
+.feature-spotlight-card {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 40px;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 36px;
+  margin-bottom: 48px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+.feature-spotlight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-canvas-red), transparent);
+}
+.spotlight-media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #000000;
+  border: 1px solid var(--border-bold);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.spotlight-video {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  border-radius: var(--radius-lg);
+}
+.spotlight-content {
+  display: flex;
+  flex-direction: column;
+}
+.spotlight-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-canvas-red);
+  background: var(--color-canvas-red-soft);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+}
+.spotlight-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: var(--text-main);
+  line-height: 1.25;
+  margin-bottom: 14px;
+}
+.spotlight-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+.spotlight-points {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.spotlight-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.spotlight-check {
+  font-size: 16px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+.spotlight-point strong {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+.spotlight-point span {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .feature-spotlight-card {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 24px;
+  }
+  .spotlight-media {
+    max-width: 320px;
+    margin: 0 auto;
+  }
+}
+
+/* ==========================================================================
+   Contact & Issue Reporting Section
+   ========================================================================== */
+.contact-section {
+  padding: 80px 0 60px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface-soft, rgba(255, 255, 255, 0.01));
+}
+.contact-card-wrapper {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.contact-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 36px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form-group label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.1px;
+}
+.form-group label .required {
+  color: var(--color-canvas-red);
+}
+.form-control {
+  width: 100%;
+  background: var(--bg-input, var(--bg-subtle));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 11px 14px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-main);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-canvas-red);
+  box-shadow: 0 0 0 3px rgba(225, 63, 43, 0.18);
+}
+.form-control::placeholder {
+  color: var(--text-subtle);
+}
+select.form-control {
+  appearance: auto;
+  cursor: pointer;
+}
+textarea.form-control {
+  resize: vertical;
+  min-height: 110px;
+}
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.contact-direct-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.contact-direct-hint a {
+  color: var(--color-canvas-red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.contact-direct-hint a:hover {
+  color: var(--color-canvas-red-hover);
+}
+.contact-status-alert {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+.contact-status-alert.alert-success {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #22c55e;
+}
+.contact-status-alert.alert-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .contact-card {
+    padding: 24px 18px;
+  }
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
