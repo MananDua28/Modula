@@ -248,7 +248,15 @@ function initContactForm() {
     const userMessage = document.getElementById('contactMessage')?.value.trim();
 
     if (!email || !userMessage) {
-      showAlert('Please enter your email and a description of the issue.', 'error');
+      showAlert('Please enter your university email and a description of the issue.', 'error');
+      return;
+    }
+
+    // Only university emails accepted
+    const personalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'aol.com', 'mail.com', 'proton.me', 'protonmail.com', 'live.com', 'msn.com'];
+    const emailDomain = (email.split('@')[1] || '').toLowerCase();
+    if (personalDomains.includes(emailDomain)) {
+      showAlert('Only official university student emails are accepted (e.g. .ac.uk, .edu, or your campus domain). Personal email addresses are not accepted.', 'error');
       return;
     }
 
@@ -286,11 +294,11 @@ function initContactForm() {
       } else {
         const errText = await response.text();
         console.warn('Supabase submission response:', response.status, errText);
-        showAlert('Could not send automatically. Please email mdua0077@gmail.com directly.', 'error');
+        showAlert('Could not send automatically. Please email modula.auth@gmail.com directly.', 'error');
       }
     } catch (err) {
       console.error('Contact form submission error:', err);
-      showAlert('Network error. Please check your internet connection or email mdua0077@gmail.com directly.', 'error');
+      showAlert('Network error. Please check your internet connection or email modula.auth@gmail.com directly.', 'error');
     } finally {
       submitBtn.disabled = false;
       submitText.textContent = originalText;
