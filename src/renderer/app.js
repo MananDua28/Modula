@@ -13,7 +13,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     newModules: new Set(),
     filterQuery: '',
     courseQuery: '',
-    focusedItem: null
+    focusedItem: null,
+    pendingPreviewItemId: null
   };
 
   // DOM Elements
@@ -697,6 +698,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     return `
+      <button class="btn btn-ghost btn-sm btn-preview-file" title="Quick preview (or press Spacebar)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span>Preview</span>
+      </button>
       <button class="btn btn-secondary btn-sm btn-download-single">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -831,10 +839,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const btnPreview = row.querySelector('.btn-preview-file');
-    if (btnPreview && downloadedRecord) {
+    if (btnPreview) {
       btnPreview.addEventListener('click', async (e) => {
         e.stopPropagation();
-        await handlePreviewItem(item, downloadedRecord);
+        if (downloadedRecord) {
+          await handlePreviewItem(item, downloadedRecord);
+        } else {
+          // File is not yet downloaded: start download and immediately auto-preview on completion
+          btnPreview.disabled = true;
+          const origHtml = btnPreview.innerHTML;
+          btnPreview.innerHTML = '<span class="spinner" style="width:11px;height:11px;"></span> <span>Opening...</span>';
+
+          state.pendingPreviewItemId = item.id;
+          showToast(`Fetching ${item.title} for preview...`);
+          await window.modula.downloadItem(state.selectedCourse, module, item, moduleIndex);
+
+          setTimeout(() => {
+            if (btnPreview) {
+              btnPreview.disabled = false;
+              btnPreview.innerHTML = origHtml;
+            }
+          }, 8000);
+        }
       });
     }
 
@@ -1549,7 +1575,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       await refreshDownloadHistory();
       updateDownloadsDrawer();
       updateItemRow(item.id);
-      showToast(`Downloaded: ${item.title}`);
+
+      if (state.pendingPreviewItemId === item.id) {
+        state.pendingPreviewItemId = null;
+        const newRecord = state.downloadHistory[item.id] || { localPath };
+        await handlePreviewItem(item, newRecord);
+      } else {
+        showToast(`Downloaded: ${item.title}`);
+      }
 
       // When the download batch finishes and active queue is empty, trigger the feedback modal
       if (state.activeDownloads.size === 0) {
@@ -1727,9 +1760,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (activeTag === 'input' || activeTag === 'textarea' || document.activeElement?.isContentEditable) {
           return;
         }
-        if (state.focusedItem && state.focusedItem.downloadedRecord) {
+        if (state.focusedItem) {
           e.preventDefault();
-          await handlePreviewItem(state.focusedItem.item, state.focusedItem.downloadedRecord);
+          const { item, downloadedRecord } = state.focusedItem;
+          if (downloadedRecord) {
+            await handlePreviewItem(item, downloadedRecord);
+          } else {
+            for (const mod of state.modules) {
+              const it = (mod.items || []).find(i => i.id === item.id);
+              if (it) {
+                state.pendingPreviewItemId = item.id;
+                showToast(`Fetching ${item.title} for preview...`);
+                await window.modula.downloadItem(state.selectedCourse, mod, it, mod.position || 1);
+                break;
+              }
+            }
+          }
         }
       }
     });
