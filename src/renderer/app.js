@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     newItems: new Set(),
     newModules: new Set(),
     filterQuery: '',
-    courseQuery: ''
+    courseQuery: '',
+    focusedItem: null
   };
 
   // DOM Elements
@@ -124,6 +125,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     feedbackAlert: document.getElementById('feedbackAlert'),
     btnOpenFeedbackModal: document.getElementById('btnOpenFeedbackModal'),
 
+    // Regular Update Popup Modal
+    updateAvailableModal: document.getElementById('updateAvailableModal'),
+    updatePopupTitle: document.getElementById('updatePopupTitle'),
+    updatePopupCurrentVer: document.getElementById('updatePopupCurrentVer'),
+    updatePopupLatestVer: document.getElementById('updatePopupLatestVer'),
+    updatePopupMessage: document.getElementById('updatePopupMessage'),
+    updatePopupNotes: document.getElementById('updatePopupNotes'),
+    btnPopupDownloadUpdate: document.getElementById('btnPopupDownloadUpdate'),
+    btnPopupDownloadText: document.getElementById('btnPopupDownloadText'),
+    btnPopupLaterUpdate: document.getElementById('btnPopupLaterUpdate'),
+
+    // In-App File Preview Modal
+    filePreviewModal: document.getElementById('filePreviewModal'),
+    previewFileBadge: document.getElementById('previewFileBadge'),
+    previewFileTitle: document.getElementById('previewFileTitle'),
+    previewFileMeta: document.getElementById('previewFileMeta'),
+    btnPreviewOpenExternal: document.getElementById('btnPreviewOpenExternal'),
+    btnPreviewShowFolder: document.getElementById('btnPreviewShowFolder'),
+    btnPreviewClose: document.getElementById('btnPreviewClose'),
+    previewModalBody: document.getElementById('previewModalBody'),
+
     // Toast
     toast: document.getElementById('toast')
   };
@@ -141,13 +163,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     await initAppVersion();
 
-    // Check if an initial update check was already performed and requires a force update
-    try {
-      const updateStatus = await window.modula.getUpdateStatus();
-      if (updateStatus && updateStatus.isForceUpdate) {
-        handleForceUpdateRequired(updateStatus);
+    // Automatically trigger update check on startup so the update popup appears immediately
+    setTimeout(async () => {
+      try {
+        const updateStatus = await window.modula.checkForUpdates();
+        if (updateStatus) {
+          if (updateStatus.isForceUpdate) {
+            handleForceUpdateRequired(updateStatus);
+          } else if (updateStatus.updateAvailable) {
+            handleUpdateAvailable(updateStatus);
+          }
+        }
+      } catch (err) {
+        console.warn('Initial update check error:', err);
       }
-    } catch (_) {}
+    }, 1200);
   }
 
   // Configuration & Theme
@@ -194,10 +224,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function handleUpdateAvailable(updateInfo) {
     latestUpdateInfo = updateInfo;
+
+    // Show persistent banner in workspace
     if (elements.updateBanner && elements.updateBannerText) {
       elements.updateBannerText.textContent = `Modula v${updateInfo.latestVersion} is available with new updates!`;
       elements.updateBanner.classList.remove('hidden');
     }
+
+    // Update settings notice box
     if (elements.updateNoticeBox) {
       elements.updateNoticeBox.className = 'update-notice-box has-update';
       elements.updateNoticeBox.innerHTML = `
@@ -209,6 +243,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnAction.addEventListener('click', () => downloadAppUpdate(updateInfo));
       }
       elements.updateNoticeBox.classList.remove('hidden');
+    }
+
+    // Automatically display the Update Available Modal Popup
+    if (elements.updateAvailableModal) {
+      if (elements.updatePopupTitle) {
+        elements.updatePopupTitle.textContent = `Modula v${updateInfo.latestVersion} is Ready`;
+      }
+      if (elements.updatePopupCurrentVer) {
+        elements.updatePopupCurrentVer.textContent = `Installed: v${updateInfo.currentVersion || '1.0.3'}`;
+      }
+      if (elements.updatePopupLatestVer) {
+        elements.updatePopupLatestVer.textContent = `Latest: v${updateInfo.latestVersion || '1.0.4'}`;
+      }
+      if (elements.updatePopupMessage && updateInfo.message) {
+        elements.updatePopupMessage.textContent = updateInfo.message;
+      }
+      if (elements.updatePopupNotes) {
+        if (updateInfo.releaseNotes && updateInfo.releaseNotes.trim()) {
+          elements.updatePopupNotes.textContent = updateInfo.releaseNotes.trim();
+          elements.updatePopupNotes.classList.remove('hidden');
+        } else {
+          elements.updatePopupNotes.classList.add('hidden');
+        }
+      }
+      if (elements.btnPopupDownloadText) {
+        elements.btnPopupDownloadText.textContent = `Download Modula v${updateInfo.latestVersion}`;
+      }
+      elements.updateAvailableModal.classList.remove('hidden');
     }
   }
 
@@ -610,6 +672,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       );
       const openLabel = isVideo ? 'Watch' : (item.type === 'ExternalTool' || item.type === 'ExternalUrl' ? 'Open Link' : 'Open');
       return `
+        <button class="btn btn-ghost btn-sm btn-preview-file" title="Quick preview (or press Spacebar)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>Preview</span>
+        </button>
         <button class="btn btn-ghost btn-sm btn-open-file" title="${isVideo ? 'Watch recording' : 'Open file'}">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="${isVideo ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
             ${isVideo
@@ -639,17 +708,140 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
+  let currentPreviewItem = null;
+
+  async function handlePreviewItem(item, downloadedRecord) {
+    if (!downloadedRecord || !downloadedRecord.localPath) return;
+
+    // Try native macOS Quick Look first
+    try {
+      const quickLookSuccess = await window.modula.previewFile(downloadedRecord.localPath);
+      if (quickLookSuccess) {
+        return;
+      }
+    } catch (_) {}
+
+    // Fall back to in-app modal preview (e.g. Windows or if Quick Look is unavailable)
+    await openFilePreviewModal(item, downloadedRecord);
+  }
+
+  async function openFilePreviewModal(item, downloadedRecord) {
+    if (!elements.filePreviewModal) return;
+    currentPreviewItem = { item, downloadedRecord };
+
+    const title = item.title || 'File Preview';
+    if (elements.previewFileTitle) {
+      elements.previewFileTitle.textContent = title;
+    }
+
+    const ext = title.includes('.') ? title.split('.').pop().toUpperCase() : 'FILE';
+    if (elements.previewFileBadge) {
+      elements.previewFileBadge.textContent = ext;
+    }
+
+    if (elements.previewFileMeta) {
+      const sizeStr = downloadedRecord.size ? formatBytes(downloadedRecord.size) : '';
+      elements.previewFileMeta.textContent = sizeStr ? `${ext} Document · ${sizeStr}` : `${ext} Document`;
+    }
+
+    if (elements.previewModalBody) {
+      elements.previewModalBody.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><span class="spinner"></span></div>';
+    }
+
+    elements.filePreviewModal.classList.remove('hidden');
+
+    try {
+      const fileData = await window.modula.readFileContent(downloadedRecord.localPath);
+      if (!fileData) {
+        renderUnsupportedPreview('File could not be loaded or no longer exists on disk.');
+        return;
+      }
+
+      if (fileData.type === 'text') {
+        elements.previewModalBody.innerHTML = `<pre class="preview-code-view"><code>${escapeHtml(fileData.content)}</code></pre>`;
+      } else if (fileData.type === 'image') {
+        elements.previewModalBody.innerHTML = `<img src="${fileData.dataUrl}" class="preview-image-view" alt="${escapeHtml(title)}" />`;
+      } else if (fileData.type === 'pdf') {
+        elements.previewModalBody.innerHTML = `<iframe src="file://${encodeURI(downloadedRecord.localPath)}" class="preview-frame"></iframe>`;
+      } else if (fileData.type === 'media') {
+        elements.previewModalBody.innerHTML = `
+          <video controls autoplay class="preview-media-player" src="file://${encodeURI(downloadedRecord.localPath)}">
+            Your system does not support inline video playback.
+          </video>`;
+      } else {
+        renderUnsupportedPreview('This file format can be viewed directly in your default application.');
+      }
+    } catch (err) {
+      renderUnsupportedPreview(`Could not load preview: ${err.message}`);
+    }
+  }
+
+  function renderUnsupportedPreview(desc) {
+    if (!elements.previewModalBody) return;
+    elements.previewModalBody.innerHTML = `
+      <div class="preview-unsupported-box">
+        <div class="preview-unsupported-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+        </div>
+        <div class="preview-unsupported-title">Preview Not Supported Inline</div>
+        <p class="preview-unsupported-desc">${escapeHtml(desc)}</p>
+        <button id="btnPreviewFallbackOpen" class="btn btn-primary btn-md">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+          Open with Default App
+        </button>
+      </div>
+    `;
+    const btn = document.getElementById('btnPreviewFallbackOpen');
+    if (btn && currentPreviewItem && currentPreviewItem.downloadedRecord) {
+      btn.addEventListener('click', () => {
+        window.modula.openPath(currentPreviewItem.downloadedRecord.localPath);
+      });
+    }
+  }
+
+  function closeFilePreviewModal() {
+    if (!elements.filePreviewModal) return;
+    elements.filePreviewModal.classList.add('hidden');
+    if (elements.previewModalBody) {
+      elements.previewModalBody.innerHTML = '';
+    }
+    currentPreviewItem = null;
+  }
+
   function attachItemEventListeners(row, module, item, moduleIndex, downloadedRecord) {
+    row.addEventListener('click', () => {
+      document.querySelectorAll('.item-row.selected').forEach(r => r.classList.remove('selected'));
+      row.classList.add('selected');
+      state.focusedItem = { item, downloadedRecord };
+    });
+
     const btnDownload = row.querySelector('.btn-download-single');
     if (btnDownload) {
-      btnDownload.addEventListener('click', () => {
+      btnDownload.addEventListener('click', (e) => {
+        e.stopPropagation();
         window.modula.downloadItem(state.selectedCourse, module, item, moduleIndex);
+      });
+    }
+
+    const btnPreview = row.querySelector('.btn-preview-file');
+    if (btnPreview && downloadedRecord) {
+      btnPreview.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await handlePreviewItem(item, downloadedRecord);
       });
     }
 
     const btnOpen = row.querySelector('.btn-open-file');
     if (btnOpen && downloadedRecord) {
-      btnOpen.addEventListener('click', async () => {
+      btnOpen.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const opened = await window.modula.openPath(downloadedRecord.localPath);
         if (!opened) {
           showToast('File no longer exists on disk. You can download it again.');
@@ -661,7 +853,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const btnShowFolder = row.querySelector('.btn-show-folder');
     if (btnShowFolder && downloadedRecord) {
-      btnShowFolder.addEventListener('click', async () => {
+      btnShowFolder.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const shown = await window.modula.showItemInFolder(downloadedRecord.localPath);
         if (!shown) {
           showToast('File no longer exists on disk. You can download it again.');
@@ -1063,15 +1256,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 120);
   }
 
-  function closeFeedbackModal() {
+  async function closeFeedbackModal() {
     if (!elements.feedbackModal) return;
     elements.feedbackModal.classList.add('hidden');
+    try {
+      await window.modula.dismissFeedback();
+    } catch (_) {}
   }
 
   async function checkAndShowFeedbackModal() {
     try {
       const status = await window.modula.getFeedbackStatus();
       if (status.feedbackSubmitted || status.feedbackDismissed) {
+        return;
+      }
+
+      // Require student to have completed at least 5 downloads before prompting for feedback
+      const historyCount = Object.keys(state.downloadHistory || {}).length;
+      if (historyCount < 5) {
         return;
       }
 
@@ -1095,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (elements.feedbackCloseBtn) {
-      elements.feedbackCloseBtn.addEventListener('click', closeFeedbackModal);
+      elements.feedbackCloseBtn.addEventListener('click', () => closeFeedbackModal());
     }
 
     if (elements.feedbackModal) {
@@ -1107,11 +1309,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (elements.feedbackLaterBtn) {
-      elements.feedbackLaterBtn.addEventListener('click', async () => {
+      elements.feedbackLaterBtn.addEventListener('click', () => {
         closeFeedbackModal();
-        try {
-          await window.modula.dismissFeedback();
-        } catch (e) {}
       });
     }
 
@@ -1440,6 +1639,100 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (elements.btnCheckUpdates) {
       elements.btnCheckUpdates.addEventListener('click', triggerManualUpdateCheck);
     }
+
+    // Update Available Popup Modal
+    if (elements.btnPopupDownloadUpdate) {
+      elements.btnPopupDownloadUpdate.addEventListener('click', () => {
+        if (latestUpdateInfo) {
+          downloadAppUpdate(latestUpdateInfo);
+        } else {
+          window.modula.openExternal('https://github.com/MananDua28/Modula/releases/latest');
+        }
+        if (elements.updateAvailableModal) {
+          elements.updateAvailableModal.classList.add('hidden');
+        }
+      });
+    }
+
+    if (elements.btnPopupLaterUpdate) {
+      elements.btnPopupLaterUpdate.addEventListener('click', () => {
+        if (elements.updateAvailableModal) {
+          elements.updateAvailableModal.classList.add('hidden');
+        }
+      });
+    }
+
+    if (elements.updateAvailableModal) {
+      elements.updateAvailableModal.addEventListener('click', (e) => {
+        if (e.target === elements.updateAvailableModal) {
+          elements.updateAvailableModal.classList.add('hidden');
+        }
+      });
+    }
+
+    // In-App File Preview Modal
+    if (elements.btnPreviewOpenExternal) {
+      elements.btnPreviewOpenExternal.addEventListener('click', () => {
+        if (currentPreviewItem && currentPreviewItem.downloadedRecord) {
+          window.modula.openPath(currentPreviewItem.downloadedRecord.localPath);
+        }
+      });
+    }
+
+    if (elements.btnPreviewShowFolder) {
+      elements.btnPreviewShowFolder.addEventListener('click', () => {
+        if (currentPreviewItem && currentPreviewItem.downloadedRecord) {
+          window.modula.showItemInFolder(currentPreviewItem.downloadedRecord.localPath);
+        }
+      });
+    }
+
+    if (elements.btnPreviewClose) {
+      elements.btnPreviewClose.addEventListener('click', closeFilePreviewModal);
+    }
+
+    if (elements.filePreviewModal) {
+      elements.filePreviewModal.addEventListener('click', (e) => {
+        if (e.target === elements.filePreviewModal) {
+          closeFilePreviewModal();
+        }
+      });
+    }
+
+    // Global Keyboard Shortcuts (Space for Quick Look preview, Escape to close modals)
+    document.addEventListener('keydown', async (e) => {
+      // Escape closes whichever modal is open
+      if (e.key === 'Escape') {
+        if (elements.filePreviewModal && !elements.filePreviewModal.classList.contains('hidden')) {
+          closeFilePreviewModal();
+          return;
+        }
+        if (elements.updateAvailableModal && !elements.updateAvailableModal.classList.contains('hidden')) {
+          elements.updateAvailableModal.classList.add('hidden');
+          return;
+        }
+        if (elements.feedbackModal && !elements.feedbackModal.classList.contains('hidden')) {
+          await closeFeedbackModal();
+          return;
+        }
+        if (elements.settingsModal && !elements.settingsModal.classList.contains('hidden')) {
+          closeSettingsModal();
+          return;
+        }
+      }
+
+      // Spacebar preview shortcut (macOS Quick Look behavior)
+      if (e.code === 'Space' || e.key === ' ') {
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        if (activeTag === 'input' || activeTag === 'textarea' || document.activeElement?.isContentEditable) {
+          return;
+        }
+        if (state.focusedItem && state.focusedItem.downloadedRecord) {
+          e.preventDefault();
+          await handlePreviewItem(state.focusedItem.item, state.focusedItem.downloadedRecord);
+        }
+      }
+    });
   }
 
   // Helpers

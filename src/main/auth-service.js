@@ -343,7 +343,10 @@ class AuthService {
   }
 
   dismissFeedback() {
-    this.configStore.saveConfig({ feedbackDismissed: true });
+    this.configStore.saveConfig({
+      feedbackDismissed: true,
+      feedbackDismissedAt: Date.now()
+    });
     return { success: true };
   }
 
@@ -351,7 +354,8 @@ class AuthService {
     const config = this.configStore.getConfig();
     return {
       feedbackSubmitted: Boolean(config.feedbackSubmitted),
-      feedbackDismissed: Boolean(config.feedbackDismissed)
+      feedbackDismissed: Boolean(config.feedbackDismissed),
+      feedbackDismissedAt: config.feedbackDismissedAt || null
     };
   }
 }

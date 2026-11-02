@@ -51,19 +51,21 @@ function createWindow() {
   // Start background auto-sync
   syncEngine.start();
 
-  // Check for app updates 2 seconds after launch
-  setTimeout(async () => {
-    if (updateChecker) {
-      try {
-        const updateInfo = await updateChecker.checkForUpdates(false);
-        if (updateInfo && updateInfo.isForceUpdate && syncEngine) {
-          syncEngine.stop();
+  // Check for app updates when renderer is fully ready
+  mainWindow.webContents.once('did-finish-load', () => {
+    setTimeout(async () => {
+      if (updateChecker) {
+        try {
+          const updateInfo = await updateChecker.checkForUpdates(false);
+          if (updateInfo && updateInfo.isForceUpdate && syncEngine) {
+            syncEngine.stop();
+          }
+        } catch (err) {
+          console.warn('Auto update check failed:', err.message);
         }
-      } catch (err) {
-        console.warn('Auto update check failed:', err.message);
       }
-    }
-  }, 2000);
+    }, 1200);
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -183,6 +185,61 @@ ipcMain.handle('system:open-path', async (_event, filePath) => {
 
 ipcMain.handle('system:show-in-folder', async (_event, filePath) => {
   return downloadManager.showInFolder(filePath);
+});
+
+ipcMain.handle('system:preview-file', async (_event, filePath) => {
+  if (!filePath) return false;
+  try {
+    const fs = require('fs');
+    if (!fs.existsSync(filePath)) return false;
+    if (process.platform === 'darwin' && mainWindow) {
+      mainWindow.previewFile(filePath);
+      return true;
+    }
+  } catch (err) {
+    console.warn('macOS previewFile error:', err);
+  }
+  return false;
+});
+
+ipcMain.handle('system:read-file-content', async (_event, filePath) => {
+  if (!filePath) return null;
+  try {
+    const fs = require('fs');
+    if (!fs.existsSync(filePath)) return null;
+    const ext = path.extname(filePath).toLowerCase();
+    const stat = fs.statSync(filePath);
+
+    // Text & code formats
+    if (['.txt', '.md', '.html', '.htm', '.json', '.js', '.py', '.java', '.c', '.cpp', '.css', '.xml', '.csv'].includes(ext)) {
+      if (stat.size > 2 * 1024 * 1024) return { type: 'large', size: stat.size, ext };
+      const content = fs.readFileSync(filePath, 'utf8');
+      return { type: 'text', content, ext, size: stat.size };
+    }
+
+    // Images
+    if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'].includes(ext)) {
+      if (stat.size > 15 * 1024 * 1024) return { type: 'large', size: stat.size, ext };
+      const mime = ext === '.svg' ? 'image/svg+xml' : `image/${ext.replace('.', '')}`;
+      const base64 = fs.readFileSync(filePath).toString('base64');
+      return { type: 'image', dataUrl: `data:${mime};base64,${base64}`, ext, size: stat.size };
+    }
+
+    // Video / Audio
+    if (['.mp4', '.webm', '.mkv', '.mov', '.mp3', '.m4a', '.wav'].includes(ext)) {
+      return { type: 'media', ext, size: stat.size, isVideo: ['.mp4', '.webm', '.mkv', '.mov'].includes(ext) };
+    }
+
+    // PDF
+    if (ext === '.pdf') {
+      return { type: 'pdf', ext, size: stat.size };
+    }
+
+    return { type: 'binary', ext, size: stat.size };
+  } catch (err) {
+    console.error('Error reading file content:', err);
+    return null;
+  }
 });
 
 // Auto-Sync

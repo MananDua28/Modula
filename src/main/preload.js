@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('modula', {
   // System & Files
   openPath: (path) => ipcRenderer.invoke('system:open-path', path),
   showItemInFolder: (path) => ipcRenderer.invoke('system:show-in-folder', path),
+  previewFile: (path) => ipcRenderer.invoke('system:preview-file', path),
+  readFileContent: (path) => ipcRenderer.invoke('system:read-file-content', path),
 
   // Auto-Sync
   triggerSync: () => ipcRenderer.invoke('sync:trigger'),
