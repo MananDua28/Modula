@@ -242,6 +242,15 @@ ipcMain.handle('system:read-file-content', async (_event, filePath) => {
   }
 });
 
+// Ephemeral Previews (Storage-Saving)
+ipcMain.handle('preview:fetch-temp-file', async (_event, { course, module, item }) => {
+  return await downloadManager.fetchTempFileForPreview(course, module, item);
+});
+
+ipcMain.handle('preview:get-online-item', async (_event, { courseId, item }) => {
+  return await downloadManager.getOnlineItemPreview(courseId, item);
+});
+
 // Auto-Sync
 ipcMain.handle('sync:trigger', async () => {
   if (updateChecker && updateChecker.isForceUpdateRequired()) {

@@ -142,6 +142,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     previewFileBadge: document.getElementById('previewFileBadge'),
     previewFileTitle: document.getElementById('previewFileTitle'),
     previewFileMeta: document.getElementById('previewFileMeta'),
+    btnPreviewDownloadAction: document.getElementById('btnPreviewDownloadAction'),
+    btnPreviewDownloadText: document.getElementById('btnPreviewDownloadText'),
+    btnPreviewQuickLook: document.getElementById('btnPreviewQuickLook'),
     btnPreviewOpenExternal: document.getElementById('btnPreviewOpenExternal'),
     btnPreviewShowFolder: document.getElementById('btnPreviewShowFolder'),
     btnPreviewClose: document.getElementById('btnPreviewClose'),
@@ -718,24 +721,234 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let currentPreviewItem = null;
 
-  async function handlePreviewItem(item, downloadedRecord) {
-    if (!downloadedRecord || !downloadedRecord.localPath) return;
+  async function handlePreviewItem(item, module, moduleIndex, downloadedRecord) {
+    if (!item) return;
 
-    // Try native macOS Quick Look first
-    try {
-      const quickLookSuccess = await window.modula.previewFile(downloadedRecord.localPath);
-      if (quickLookSuccess) {
-        return;
-      }
-    } catch (_) {}
+    // Case 1: File is already downloaded locally in course folder
+    if (downloadedRecord && downloadedRecord.localPath) {
+      await openFilePreviewModal(item, module, moduleIndex, downloadedRecord, true);
+      return;
+    }
 
-    // Fall back to in-app modal preview (e.g. Windows or if Quick Look is unavailable)
-    await openFilePreviewModal(item, downloadedRecord);
+    // Case 2: File is NOT downloaded yet (Storage-saving ephemeral preview)
+    await openEphemeralPreview(item, module, moduleIndex);
   }
 
-  async function openFilePreviewModal(item, downloadedRecord) {
+  async function openEphemeralPreview(item, module, moduleIndex) {
     if (!elements.filePreviewModal) return;
-    currentPreviewItem = { item, downloadedRecord };
+    currentPreviewItem = { item, module, moduleIndex, downloadedRecord: null, isTemp: true, tempPath: null };
+
+    const title = item.title || 'Preview';
+    if (elements.previewFileTitle) {
+      elements.previewFileTitle.textContent = title;
+    }
+
+    const ext = title.includes('.') ? title.split('.').pop().toUpperCase() : (item.type || 'FILE').toUpperCase();
+    if (elements.previewFileBadge) {
+      elements.previewFileBadge.textContent = `PREVIEW · ${ext}`;
+    }
+
+    if (elements.previewFileMeta) {
+      const sizeStr = item.contentDetails && item.contentDetails.size ? formatBytes(item.contentDetails.size) : '';
+      elements.previewFileMeta.textContent = sizeStr ? `Online ${item.type} · ${sizeStr} · Not downloaded (0 B on disk)` : `Online ${item.type} · Not downloaded (0 B on disk)`;
+    }
+
+    // Setup action buttons for un-downloaded preview
+    if (elements.btnPreviewDownloadAction) {
+      elements.btnPreviewDownloadAction.classList.remove('hidden');
+      elements.btnPreviewDownloadAction.disabled = false;
+      elements.btnPreviewDownloadText.textContent = 'Download to Course';
+    }
+    if (elements.btnPreviewOpenExternal) {
+      elements.btnPreviewOpenExternal.classList.add('hidden');
+    }
+    if (elements.btnPreviewShowFolder) {
+      elements.btnPreviewShowFolder.classList.add('hidden');
+    }
+    if (elements.btnPreviewQuickLook) {
+      elements.btnPreviewQuickLook.classList.add('hidden');
+    }
+
+    if (elements.previewModalBody) {
+      elements.previewModalBody.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;">
+          <span class="spinner" style="width:28px;height:28px;"></span>
+          <span style="font-size:13px;color:var(--text-muted);">Fetching preview without saving to storage...</span>
+        </div>
+      `;
+    }
+
+    elements.filePreviewModal.classList.remove('hidden');
+
+    try {
+      // If Assignment or Page or External link: fetch online text/content directly without any disk write
+      if (item.type === 'Assignment' || item.type === 'Page' || item.type === 'ExternalUrl' || item.type === 'ExternalTool') {
+        const onlineData = await window.modula.getOnlineItemPreview(state.selectedCourse.id, item);
+        if (!onlineData) {
+          renderUnsupportedPreview('Preview information could not be retrieved from Canvas.');
+          return;
+        }
+
+        if (onlineData.type === 'Assignment') {
+          const dueStr = onlineData.dueAt ? new Date(onlineData.dueAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'No Due Date';
+          const pointsStr = onlineData.pointsPossible !== undefined && onlineData.pointsPossible !== null ? `${onlineData.pointsPossible} pts` : 'No points';
+          const subTypesStr = onlineData.submissionTypes && onlineData.submissionTypes.length > 0 ? onlineData.submissionTypes.map(s => s.replace(/_/g, ' ')).join(', ') : 'Online submission';
+
+          let attachmentsHtml = '';
+          if (onlineData.attachments && onlineData.attachments.length > 0) {
+            attachmentsHtml = `
+              <div class="preview-attachments-section">
+                <div class="preview-attachments-title">Attached Materials & Files</div>
+                <div class="preview-attachments-list">
+                  ${onlineData.attachments.map(att => `
+                    <div class="preview-attachment-item">
+                      <span>${escapeHtml(att.display_name)}</span>
+                      <span style="color:var(--text-muted);font-size:11px;">${formatBytes(att.size)}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          elements.previewModalBody.innerHTML = `
+            <div class="preview-assignment-doc">
+              <div class="preview-assignment-meta-bar">
+                <div class="preview-meta-pill">
+                  <span class="pill-label">Due Date</span>
+                  <span class="pill-value">${escapeHtml(dueStr)}</span>
+                </div>
+                <div class="preview-meta-pill">
+                  <span class="pill-label">Points</span>
+                  <span class="pill-value">${escapeHtml(pointsStr)}</span>
+                </div>
+                <div class="preview-meta-pill">
+                  <span class="pill-label">Submission</span>
+                  <span class="pill-value" style="text-transform:capitalize;">${escapeHtml(subTypesStr)}</span>
+                </div>
+              </div>
+              <div class="preview-assignment-content">
+                ${onlineData.description}
+              </div>
+              ${attachmentsHtml}
+            </div>
+          `;
+          return;
+        }
+
+        if (onlineData.type === 'Page') {
+          elements.previewModalBody.innerHTML = `
+            <div class="preview-page-doc">
+              <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text-main);">${escapeHtml(onlineData.title)}</h2>
+              <div class="preview-page-content">
+                ${onlineData.body}
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        if (onlineData.type === 'ExternalUrl') {
+          elements.previewModalBody.innerHTML = `
+            <div class="preview-unsupported-box">
+              <div class="preview-unsupported-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+              </div>
+              <div class="preview-unsupported-title">${escapeHtml(onlineData.title)}</div>
+              <p class="preview-unsupported-desc">${escapeHtml(onlineData.url)}</p>
+              <button class="btn btn-primary btn-md" onclick="window.modula.openExternal('${escapeHtml(onlineData.url)}')">
+                Open External Link
+              </button>
+            </div>
+          `;
+          return;
+        }
+      }
+
+      // If File (PDF, DOCX, PPTX, Image, Video, Code): fetch to ephemeral OS temp cache ONLY
+      const tempRes = await window.modula.fetchTempFileForPreview(state.selectedCourse, module, item);
+      if (!tempRes || !tempRes.tempPath) {
+        renderUnsupportedPreview('Unable to fetch file preview from Canvas.');
+        return;
+      }
+
+      currentPreviewItem.tempPath = tempRes.tempPath;
+
+      if (elements.previewFileMeta) {
+        const sizeStr = tempRes.size ? formatBytes(tempRes.size) : '';
+        elements.previewFileMeta.textContent = sizeStr ? `${ext} Document · ${sizeStr} · Ephemeral Preview` : `${ext} Document · Ephemeral Preview`;
+      }
+
+      // Allow macOS Quick Look from temp file
+      if (elements.btnPreviewQuickLook) {
+        elements.btnPreviewQuickLook.classList.remove('hidden');
+      }
+
+      const fileData = await window.modula.readFileContent(tempRes.tempPath);
+      if (!fileData) {
+        renderUnsupportedPreview('File downloaded to temp preview but could not be parsed inline.');
+        return;
+      }
+
+      if (fileData.type === 'pdf') {
+        elements.previewModalBody.innerHTML = `<iframe src="file://${encodeURI(tempRes.tempPath)}" class="preview-frame"></iframe>`;
+      } else if (fileData.type === 'image') {
+        elements.previewModalBody.innerHTML = `<img src="${fileData.dataUrl}" class="preview-image-view" alt="${escapeHtml(title)}" />`;
+      } else if (fileData.type === 'text') {
+        elements.previewModalBody.innerHTML = `<pre class="preview-code-view"><code>${escapeHtml(fileData.content)}</code></pre>`;
+      } else if (fileData.type === 'media') {
+        elements.previewModalBody.innerHTML = `
+          <video controls autoplay class="preview-media-player" src="file://${encodeURI(tempRes.tempPath)}">
+            Your system does not support inline video playback.
+          </video>`;
+      } else {
+        renderTempDocumentPreview(tempRes.tempPath, title, ext);
+      }
+    } catch (err) {
+      renderUnsupportedPreview(`Could not load preview: ${err.message}`);
+    }
+  }
+
+  function renderTempDocumentPreview(tempPath, title, ext) {
+    if (!elements.previewModalBody) return;
+    elements.previewModalBody.innerHTML = `
+      <div class="preview-unsupported-box">
+        <div class="preview-unsupported-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+        </div>
+        <div class="preview-unsupported-title">${escapeHtml(title)}</div>
+        <p class="preview-unsupported-desc">
+          ${ext} slides & documents can be previewed instantly using macOS Quick Look without saving to your course folder.
+        </p>
+        <div style="display:flex;gap:10px;">
+          <button id="btnPreviewTriggerQuickLook" class="btn btn-secondary btn-md">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            macOS Quick Look (Space)
+          </button>
+        </div>
+      </div>
+    `;
+
+    const btnQL = document.getElementById('btnPreviewTriggerQuickLook');
+    if (btnQL) {
+      btnQL.addEventListener('click', () => {
+        window.modula.previewFile(tempPath);
+      });
+    }
+  }
+
+  async function openFilePreviewModal(item, module, moduleIndex, downloadedRecord, isLocal) {
+    if (!elements.filePreviewModal) return;
+    currentPreviewItem = { item, module, moduleIndex, downloadedRecord, isTemp: false, tempPath: downloadedRecord.localPath };
 
     const title = item.title || 'File Preview';
     if (elements.previewFileTitle) {
@@ -749,7 +962,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (elements.previewFileMeta) {
       const sizeStr = downloadedRecord.size ? formatBytes(downloadedRecord.size) : '';
-      elements.previewFileMeta.textContent = sizeStr ? `${ext} Document · ${sizeStr}` : `${ext} Document`;
+      elements.previewFileMeta.textContent = sizeStr ? `${ext} Document · ${sizeStr} · Saved Offline` : `${ext} Document · Saved Offline`;
+    }
+
+    // Configure buttons for already downloaded file
+    if (elements.btnPreviewDownloadAction) {
+      elements.btnPreviewDownloadAction.classList.add('hidden');
+    }
+    if (elements.btnPreviewOpenExternal) {
+      elements.btnPreviewOpenExternal.classList.remove('hidden');
+    }
+    if (elements.btnPreviewShowFolder) {
+      elements.btnPreviewShowFolder.classList.remove('hidden');
+    }
+    if (elements.btnPreviewQuickLook) {
+      elements.btnPreviewQuickLook.classList.remove('hidden');
     }
 
     if (elements.previewModalBody) {
@@ -777,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             Your system does not support inline video playback.
           </video>`;
       } else {
-        renderUnsupportedPreview('This file format can be viewed directly in your default application.');
+        renderUnsupportedPreview('This file format can be viewed directly in your default application or macOS Quick Look.');
       }
     } catch (err) {
       renderUnsupportedPreview(`Could not load preview: ${err.message}`);
@@ -807,9 +1034,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
     `;
     const btn = document.getElementById('btnPreviewFallbackOpen');
-    if (btn && currentPreviewItem && currentPreviewItem.downloadedRecord) {
+    if (btn && currentPreviewItem && currentPreviewItem.tempPath) {
       btn.addEventListener('click', () => {
-        window.modula.openPath(currentPreviewItem.downloadedRecord.localPath);
+        window.modula.openPath(currentPreviewItem.tempPath);
       });
     }
   }
@@ -827,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     row.addEventListener('click', () => {
       document.querySelectorAll('.item-row.selected').forEach(r => r.classList.remove('selected'));
       row.classList.add('selected');
-      state.focusedItem = { item, downloadedRecord };
+      state.focusedItem = { item, module, moduleIndex, downloadedRecord };
     });
 
     const btnDownload = row.querySelector('.btn-download-single');
@@ -842,25 +1069,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnPreview) {
       btnPreview.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (downloadedRecord) {
-          await handlePreviewItem(item, downloadedRecord);
-        } else {
-          // File is not yet downloaded: start download and immediately auto-preview on completion
-          btnPreview.disabled = true;
-          const origHtml = btnPreview.innerHTML;
-          btnPreview.innerHTML = '<span class="spinner" style="width:11px;height:11px;"></span> <span>Opening...</span>';
-
-          state.pendingPreviewItemId = item.id;
-          showToast(`Fetching ${item.title} for preview...`);
-          await window.modula.downloadItem(state.selectedCourse, module, item, moduleIndex);
-
-          setTimeout(() => {
-            if (btnPreview) {
-              btnPreview.disabled = false;
-              btnPreview.innerHTML = origHtml;
-            }
-          }, 8000);
-        }
+        await handlePreviewItem(item, module, moduleIndex, downloadedRecord);
       });
     }
 
@@ -1704,10 +1913,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // In-App File Preview Modal
+    if (elements.btnPreviewDownloadAction) {
+      elements.btnPreviewDownloadAction.addEventListener('click', async () => {
+        if (!currentPreviewItem) return;
+        const { item, module, moduleIndex } = currentPreviewItem;
+        elements.btnPreviewDownloadAction.disabled = true;
+        if (elements.btnPreviewDownloadText) {
+          elements.btnPreviewDownloadText.textContent = 'Downloading...';
+        }
+        showToast(`Downloading ${item.title} to your course folder...`);
+        await window.modula.downloadItem(state.selectedCourse, module, item, moduleIndex);
+
+        elements.btnPreviewDownloadAction.classList.add('hidden');
+        elements.btnPreviewOpenExternal.classList.remove('hidden');
+        elements.btnPreviewShowFolder.classList.remove('hidden');
+      });
+    }
+
+    if (elements.btnPreviewQuickLook) {
+      elements.btnPreviewQuickLook.addEventListener('click', () => {
+        if (currentPreviewItem && currentPreviewItem.tempPath) {
+          window.modula.previewFile(currentPreviewItem.tempPath);
+        }
+      });
+    }
+
     if (elements.btnPreviewOpenExternal) {
       elements.btnPreviewOpenExternal.addEventListener('click', () => {
-        if (currentPreviewItem && currentPreviewItem.downloadedRecord) {
-          window.modula.openPath(currentPreviewItem.downloadedRecord.localPath);
+        if (currentPreviewItem && currentPreviewItem.tempPath) {
+          window.modula.openPath(currentPreviewItem.tempPath);
         }
       });
     }
@@ -1762,20 +1996,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (state.focusedItem) {
           e.preventDefault();
-          const { item, downloadedRecord } = state.focusedItem;
-          if (downloadedRecord) {
-            await handlePreviewItem(item, downloadedRecord);
-          } else {
-            for (const mod of state.modules) {
-              const it = (mod.items || []).find(i => i.id === item.id);
-              if (it) {
-                state.pendingPreviewItemId = item.id;
-                showToast(`Fetching ${item.title} for preview...`);
-                await window.modula.downloadItem(state.selectedCourse, mod, it, mod.position || 1);
-                break;
-              }
-            }
-          }
+          const { item, module, moduleIndex, downloadedRecord } = state.focusedItem;
+          await handlePreviewItem(item, module, moduleIndex, downloadedRecord);
         }
       }
     });

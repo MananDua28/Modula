@@ -1610,6 +1610,111 @@ class DownloadManager {
     return false;
   }
 
+  async fetchTempFileForPreview(course, module, item) {
+    const config = this.configStore.getConfig();
+    const token = config.token;
+    const baseUrl = config.baseUrl;
+
+    const os = require('os');
+    const tempDir = path.join(os.tmpdir(), 'modula_previews');
+    fs.mkdirSync(tempDir, { recursive: true });
+
+    let downloadUrl = item.downloadUrl;
+    let fileName = this.sanitize(item.title || 'preview_file');
+
+    if (!downloadUrl) {
+      let fileDetails = null;
+      try {
+        if (item.url && !item.url.includes('/download')) {
+          fileDetails = await CanvasAPI.getFileDetails(baseUrl, token, item.url);
+        } else if (item.contentId) {
+          fileDetails = await CanvasAPI.getFileDetails(baseUrl, token, item.contentId);
+        }
+      } catch (e) {
+        console.warn('[Preview] Could not fetch file details via API:', e.message);
+      }
+
+      if (fileDetails && fileDetails.url) {
+        downloadUrl = fileDetails.url;
+        fileName = this.sanitize(fileDetails.display_name || item.title || 'preview_file');
+      } else if (item.url) {
+        downloadUrl = item.url;
+      }
+    }
+
+    if (!downloadUrl) {
+      throw new Error('Unable to resolve file download URL for preview');
+    }
+
+    if (!path.extname(fileName)) {
+      const matchExt = downloadUrl.match(/\.(pdf|pptx?|docx?|xlsx?|zip|rar|py|c|cpp|java|ipynb|mat)(\?|$)/i);
+      if (matchExt) {
+        fileName += '.' + matchExt[1].toLowerCase();
+      }
+    }
+
+    const tempPath = path.join(tempDir, `${item.id}_${fileName}`);
+
+    // If file is already cached in temp, return immediately!
+    if (fs.existsSync(tempPath) && fs.statSync(tempPath).size > 0) {
+      return { tempPath, fileName, size: fs.statSync(tempPath).size };
+    }
+
+    // Download strictly to temporary cache - NEVER save to course folder or download history
+    const dlResult = await CanvasAPI.downloadToFile(downloadUrl, token, tempPath);
+    const size = (dlResult && dlResult.size) ? dlResult.size : (fs.existsSync(tempPath) ? fs.statSync(tempPath).size : 0);
+
+    return { tempPath, fileName, size };
+  }
+
+  async getOnlineItemPreview(courseId, item) {
+    const config = this.configStore.getConfig();
+    const token = config.token;
+    const baseUrl = config.baseUrl;
+
+    if (item.type === 'Assignment') {
+      const assignmentId = item.contentId || (item.id && String(item.id).startsWith('res_assignment_') ? item.id.replace('res_assignment_', '') : item.id);
+      const aData = await CanvasAPI.getAssignmentDetails(baseUrl, token, courseId, assignmentId);
+      return {
+        type: 'Assignment',
+        title: aData.name || item.title,
+        description: aData.description || '<p style="color:var(--text-muted);">No description provided for this assignment.</p>',
+        dueAt: aData.due_at || item.contentDetails?.due_at || null,
+        pointsPossible: aData.points_possible !== undefined ? aData.points_possible : item.contentDetails?.points_possible,
+        submissionTypes: Array.isArray(aData.submission_types) ? aData.submission_types : [],
+        htmlUrl: aData.html_url || item.html_url,
+        attachments: Array.isArray(aData.attachments) ? aData.attachments.map(att => ({
+          id: att.id,
+          display_name: att.display_name || att.filename,
+          size: att.size || 0,
+          url: att.url
+        })) : []
+      };
+    }
+
+    if (item.type === 'Page') {
+      const pageUrl = item.page_url || (item.url ? item.url.split('/').pop() : item.title);
+      const pData = await CanvasAPI.getPageDetails(baseUrl, token, courseId, pageUrl);
+      return {
+        type: 'Page',
+        title: pData.title || item.title,
+        body: pData.body || '<p style="color:var(--text-muted);">This page has no content.</p>',
+        updatedAt: pData.updated_at || null,
+        htmlUrl: pData.html_url || item.html_url
+      };
+    }
+
+    if (item.type === 'ExternalUrl' || item.type === 'ExternalTool') {
+      return {
+        type: 'ExternalUrl',
+        title: item.title,
+        url: item.external_url || item.url || item.html_url
+      };
+    }
+
+    return null;
+  }
+
   openPath(filePath) {
     if (filePath && fs.existsSync(filePath)) {
       shell.openPath(filePath);

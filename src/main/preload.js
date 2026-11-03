@@ -27,6 +27,8 @@ contextBridge.exposeInMainWorld('modula', {
   showItemInFolder: (path) => ipcRenderer.invoke('system:show-in-folder', path),
   previewFile: (path) => ipcRenderer.invoke('system:preview-file', path),
   readFileContent: (path) => ipcRenderer.invoke('system:read-file-content', path),
+  fetchTempFileForPreview: (course, module, item) => ipcRenderer.invoke('preview:fetch-temp-file', { course, module, item }),
+  getOnlineItemPreview: (courseId, item) => ipcRenderer.invoke('preview:get-online-item', { courseId, item }),
 
   // Auto-Sync
   triggerSync: () => ipcRenderer.invoke('sync:trigger'),

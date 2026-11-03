@@ -1891,5 +1891,134 @@ body.theme-light .moon-icon { display: block; }
   border-color: var(--border-bold);
 }
 
+/* Document & Assignment Online Previews */
+.preview-assignment-doc,
+.preview-page-doc {
+  width: 100%;
+  max-width: 820px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px 28px;
+  overflow-y: auto;
+  max-height: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  text-align: left;
+}
+
+.preview-assignment-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.preview-meta-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-meta-pill .pill-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.preview-meta-pill .pill-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.preview-assignment-content,
+.preview-page-content {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+.preview-assignment-content h1,
+.preview-assignment-content h2,
+.preview-assignment-content h3,
+.preview-page-content h1,
+.preview-page-content h2,
+.preview-page-content h3 {
+  color: var(--text-main);
+  margin-top: 18px;
+  margin-bottom: 8px;
+}
+
+.preview-assignment-content p,
+.preview-page-content p {
+  margin-bottom: 14px;
+}
+
+.preview-assignment-content img,
+.preview-page-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+.preview-assignment-content a,
+.preview-page-content a {
+  color: var(--color-canvas-red);
+  text-decoration: underline;
+}
+
+.preview-assignment-content table,
+.preview-page-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.preview-assignment-content th,
+.preview-assignment-content td,
+.preview-page-content th,
+.preview-page-content td {
+  border: 1px solid var(--border-subtle);
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+
+.preview-attachments-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.preview-attachments-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.preview-attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-attachment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+
 
 
